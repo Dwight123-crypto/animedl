@@ -1,0 +1,46 @@
+# Builds an unsigned AnimeDL.ipa. Sign and install it with Sideloadly or AltStore
+# using your free Apple ID (see README → "iPhone app without Xcode").
+name: Build iOS app
+
+on:
+  push:
+    paths: ["ios/**", ".github/workflows/build-ios.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        working-directory: ios
+        run: xcodegen
+
+      - name: Build (unsigned)
+        working-directory: ios
+        run: |
+          set -o pipefail
+          xcodebuild -version
+          xcodebuild build \
+            -project AnimeDL.xcodeproj -target AnimeDL \
+            -configuration Release -sdk iphoneos \
+            SYMROOT="$PWD/build" \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            | grep -E "error|warning:|BUILD" || true
+          test -d build/Release-iphoneos/AnimeDL.app
+
+      - name: Package IPA
+        run: |
+          mkdir Payload
+          cp -R ios/build/Release-iphoneos/AnimeDL.app Payload/
+          zip -qry AnimeDL.ipa Payload
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AnimeDL-ipa
+          path: AnimeDL.ipa
+          retention-days: 30

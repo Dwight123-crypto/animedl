@@ -1,0 +1,13 @@
+server/config.json
+server/.token
+server/.cache/
+server/downloads/
+__pycache__/
+ios/AnimeDL.xcodeproj/
+ios/AnimeDL/Info.plist
+xcuserdata/
+.DS_Store
+server/.server.log
+ios/build/
+Payload/
+*.ipa

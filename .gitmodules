@@ -1,0 +1,3 @@
+[submodule "server/animepahe-dl"]
+	path = server/animepahe-dl
+	url = https://github.com/KevCui/animepahe-dl.git
