@@ -7,128 +7,237 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="AnimeDL">
-<meta name="theme-color" content="#0d0d12">
+<meta name="theme-color" content="#0b0b10">
 <link rel="apple-touch-icon" href="/icon.png">
 <link rel="manifest" href="/manifest.webmanifest">
 <title>AnimeDL</title>
 <style>
   :root {
-    --bg: #0d0d12; --card: #17171f; --card2: #20202b; --line: #2a2a36;
-    --text: #f2f2f7; --dim: #9a9aab; --accent: #ff4f8b; --ok: #34c759; --warn: #ff9f0a;
+    --bg: #0b0b10; --elev: #15151d; --elev2: #1e1e28; --line: rgba(255,255,255,.07);
+    --text: #f4f4f8; --dim: #9898a8; --faint: #5c5c6c;
+    --accent: #ff4f8b; --ok: #3ad07a; --warn: #ffa53a; --danger: #ff5a52;
     --top: env(safe-area-inset-top); --bottom: env(safe-area-inset-bottom);
+    --tabbar: calc(58px + var(--bottom));
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; background: var(--bg); color: var(--text);
-    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); overscroll-behavior-y: none;
+    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
   button, input, select { font: inherit; color: inherit; }
-  button { cursor: pointer; }
-
-  header { position: sticky; top: 0; z-index: 5; padding: calc(var(--top) + 10px) 16px 10px;
-    background: rgba(13,13,18,.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    display: flex; align-items: center; gap: 8px; min-height: 52px; }
-  header h1 { flex: 1; margin: 0; font-size: 22px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .link { background: none; border: 0; color: var(--accent); padding: 6px 0; font-size: 16px; }
-  .link:disabled { opacity: .4; }
-
-  main { padding: 4px 16px calc(var(--bottom) + 140px); }
-
-  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex;
-    padding: 6px 0 calc(var(--bottom) + 4px); background: rgba(23,23,31,.92);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--line); }
-  nav button { flex: 1; background: none; border: 0; color: var(--dim); font-size: 11px;
-    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; }
-  nav button svg { width: 24px; height: 24px; }
-  nav button.on { color: var(--accent); }
-
-  .search { display: flex; gap: 8px; margin: 4px 0 14px; }
-  .search input { flex: 1; min-width: 0; background: var(--card2); border: 0; border-radius: 10px;
-    padding: 10px 12px; font-size: 17px; outline: none; -webkit-appearance: none; }
-
-  .list { background: var(--card); border-radius: 12px; overflow: hidden; margin-bottom: 18px; }
-  .row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line);
-    width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0; }
-  .row:last-child { border-bottom: 0; }
-  .row .grow { flex: 1; min-width: 0; }
-  .row .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-  .row .s { color: var(--dim); font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .poster { width: 48px; height: 68px; border-radius: 6px; object-fit: cover; background: var(--card2); flex: none; }
-  .chev { color: var(--dim); flex: none; }
-
-  .section { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; margin: 18px 4px 6px; }
-  .hero { display: flex; gap: 14px; margin: 6px 0 14px; }
-  .hero img { width: 92px; height: 130px; border-radius: 10px; object-fit: cover; background: var(--card2); }
-  .hero .t { font-size: 19px; font-weight: 700; }
-  .hero .s { color: var(--dim); font-size: 14px; margin-top: 4px; }
-
-  .field { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--line); gap: 10px; }
-  .field:last-child { border-bottom: 0; }
-  .field select { background: none; border: 0; color: var(--dim); text-align: right; -webkit-appearance: none; direction: rtl; }
-  .field input { flex: 1; min-width: 0; background: none; border: 0; outline: none; text-align: right; color: var(--dim); }
-
-  .check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--dim); flex: none;
-    display: grid; place-items: center; }
-  .check.on { background: var(--accent); border-color: var(--accent); }
-  .check.on::after { content: ""; width: 6px; height: 11px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
-
-  .cta { position: fixed; left: 16px; right: 16px; bottom: calc(var(--bottom) + 66px); z-index: 4;
-    background: var(--accent); color: #fff; border: 0; border-radius: 14px; padding: 15px; font-size: 17px;
-    font-weight: 600; box-shadow: 0 8px 24px rgba(255,79,139,.35); }
-  .cta:disabled { opacity: .6; }
-  .btn { text-decoration: none; background: var(--card2); border: 0; border-radius: 9px; padding: 7px 12px; font-size: 14px; color: var(--accent); white-space: nowrap; }
-  .btn.danger { color: #ff453a; }
-  .btn.full { display: block; width: 100%; padding: 13px; font-size: 16px; text-align: center; border-radius: 12px; margin-bottom: 10px; }
-  .actions { display: flex; gap: 6px; flex: none; }
-
-  .bar { height: 4px; background: var(--card2); border-radius: 2px; margin-top: 7px; overflow: hidden; }
-  .bar > div { height: 100%; background: var(--accent); transition: width .5s; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--dim); }
-  .dot.downloading { background: var(--accent); } .dot.done { background: var(--ok); } .dot.failed { background: var(--warn); }
-
-  .empty { text-align: center; color: var(--dim); padding: 60px 24px; }
-  .empty b { display: block; color: var(--text); font-size: 18px; margin-bottom: 6px; }
-  .error { color: var(--warn); }
-  .note { color: var(--dim); font-size: 13px; margin: 6px 4px 18px; }
-  .spinner { width: 28px; height: 28px; margin: 60px auto; border: 3px solid var(--card2); border-top-color: var(--accent);
-    border-radius: 50%; animation: spin .8s linear infinite; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  #player { position: fixed; inset: 0; z-index: 20; background: #000; display: flex; align-items: center; justify-content: center; }
-  #player video { width: 100%; max-height: 100%; }
-  #player button { position: absolute; top: calc(var(--top) + 10px); left: 14px; background: rgba(255,255,255,.18);
-    border: 0; color: #fff; border-radius: 18px; padding: 7px 14px; font-weight: 600; }
-  #toast { position: fixed; left: 50%; bottom: calc(var(--bottom) + 130px); transform: translateX(-50%); z-index: 30;
-    background: rgba(40,40,52,.96); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: 88%;
-    text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s; }
-  #toast.show { opacity: 1; }
+  button { cursor: pointer; background: none; border: 0; padding: 0; }
+  a { color: inherit; text-decoration: none; }
+  svg { display: block; }
+  .press { transition: transform .12s, opacity .12s; }
+  .press:active { transform: scale(.96); opacity: .8; }
   [hidden] { display: none !important; }
+
+  /* ---- top bars ---- */
+  .bar { position: sticky; top: 0; z-index: 10; padding: calc(var(--top) + 6px) 12px 8px;
+    display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; min-height: calc(var(--top) + 52px);
+    background: rgba(11,11,16,.78); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid transparent; transition: border-color .2s, background .2s; }
+  .bar:not(.scrolled) { background: transparent; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .bar.scrolled { border-bottom-color: var(--line); }
+  .bar h2 { margin: 0; font-size: 17px; font-weight: 600; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s; }
+  .bar.scrolled h2 { opacity: 1; }
+  .round { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: rgba(0,0,0,.35);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #fff; }
+  .round svg { width: 20px; height: 20px; }
+  .large { padding: calc(var(--top) + 14px) 18px 6px; display: flex; align-items: flex-end; justify-content: space-between; }
+  .large h1 { margin: 0; font-size: 34px; font-weight: 800; letter-spacing: -.02em; }
+  .textbtn { color: var(--accent); font-size: 16px; font-weight: 500; padding: 6px 2px; }
+  .textbtn:disabled { opacity: .35; }
+
+  main { padding-bottom: calc(var(--tabbar) + 24px); min-height: 60vh; }
+  .pad { padding: 0 18px; }
+
+  /* ---- tab bar ---- */
+  nav.tabs { position: fixed; z-index: 20; left: 0; right: 0; bottom: 0; height: var(--tabbar); display: flex;
+    padding-bottom: var(--bottom); background: rgba(16,16,22,.86); border-top: 1px solid var(--line);
+    backdrop-filter: saturate(180%) blur(22px); -webkit-backdrop-filter: saturate(180%) blur(22px); }
+  nav.tabs button { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px;
+    color: var(--faint); font-size: 10.5px; font-weight: 600; position: relative; }
+  nav.tabs button svg { width: 25px; height: 25px; }
+  nav.tabs button.on { color: var(--text); }
+  nav.tabs button.on svg { color: var(--accent); }
+  .badge { position: absolute; top: 3px; left: calc(50% + 6px); min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px;
+    background: var(--accent); color: #fff; font-size: 11px; font-weight: 700; display: grid; place-items: center; }
+
+  /* ---- search ---- */
+  .searchbox { padding: 6px 18px 10px; }
+  .field { display: flex; align-items: center; gap: 8px; background: var(--elev2); border-radius: 12px; padding: 0 10px; height: 44px; }
+  .field svg { width: 19px; height: 19px; color: var(--dim); flex: none; }
+  .field input { flex: 1; min-width: 0; height: 100%; background: none; border: 0; outline: none; font-size: 17px; -webkit-appearance: none; }
+  .field input::-webkit-search-cancel-button { display: none; }
+  .clear { width: 22px; height: 22px; border-radius: 50%; background: var(--faint); display: grid; place-items: center; flex: none; }
+  .clear svg { width: 12px; height: 12px; color: var(--bg); stroke-width: 3; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px 10px; padding: 6px 18px 0; }
+  .tile { text-align: left; min-width: 0; }
+  .poster { width: 100%; aspect-ratio: 2/3; border-radius: 10px; object-fit: cover; background: var(--elev2); display: block; }
+  .tile .t { font-size: 13px; font-weight: 600; margin-top: 7px; line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .tile .s { font-size: 12px; color: var(--dim); margin-top: 2px; }
+  .skel { background: linear-gradient(100deg, var(--elev) 30%, var(--elev2) 50%, var(--elev) 70%); background-size: 300% 100%; animation: shimmer 1.3s infinite linear; }
+  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
+  .skel-line { height: 11px; border-radius: 6px; margin-top: 8px; }
+
+  .h3 { font-size: 20px; font-weight: 700; margin: 22px 18px 8px; display: flex; justify-content: space-between; align-items: baseline; }
+  .h3 small { font-size: 14px; font-weight: 500; color: var(--dim); }
+  .recent { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 18px; text-align: left; }
+  .recent svg { width: 18px; height: 18px; color: var(--dim); flex: none; }
+  .recent span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-bottom: 12px; margin-bottom: -12px; border-bottom: 1px solid var(--line); }
+
+  /* ---- show page ---- */
+  .hero { position: relative; overflow: hidden; margin-top: calc(-1 * (var(--top) + 52px)); padding: calc(var(--top) + 70px) 18px 18px; }
+  .hero .backdrop { position: absolute; inset: -40px; background-size: cover; background-position: center; filter: blur(34px) saturate(140%); opacity: .6; }
+  .hero::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(11,11,16,.15) 0%, rgba(11,11,16,.6) 55%, var(--bg) 100%); }
+  .hero .row { position: relative; z-index: 1; display: flex; gap: 16px; align-items: flex-end; }
+  .hero .poster { width: 112px; flex: none; box-shadow: 0 12px 30px rgba(0,0,0,.5); }
+  .hero h1 { margin: 0; font-size: 22px; line-height: 1.2; font-weight: 800; letter-spacing: -.01em; }
+  .meta { color: var(--dim); font-size: 13.5px; margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+  .star { color: #ffc93a; }
+  .tag { border: 1px solid var(--line); background: rgba(255,255,255,.07); border-radius: 6px; padding: 1px 7px; font-size: 12px; color: var(--text); }
+
+  .controls { display: flex; align-items: center; gap: 8px; padding: 4px 18px 0; }
+  .pill { position: relative; display: inline-flex; align-items: center; gap: 5px; height: 34px; padding: 0 12px; border-radius: 17px;
+    background: var(--elev2); font-size: 14px; font-weight: 600; white-space: nowrap; }
+  .pill svg { width: 14px; height: 14px; color: var(--dim); }
+  .pill select { position: absolute; inset: 0; opacity: 0; width: 100%; -webkit-appearance: none; }
+  .controls .textbtn { margin-left: auto; font-size: 15px; display: inline-flex; align-items: center; gap: 4px; }
+  .controls .textbtn svg { width: 17px; height: 17px; }
+
+  .ep { display: flex; gap: 12px; align-items: center; padding: 9px 12px 9px 18px; width: 100%; text-align: left; }
+  .thumb { position: relative; width: 128px; flex: none; aspect-ratio: 16/9; border-radius: 8px; overflow: hidden; background: var(--elev2); }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .thumb .play { position: absolute; left: 7px; bottom: 7px; width: 26px; height: 26px; border-radius: 50%;
+    background: rgba(0,0,0,.55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: grid; place-items: center; }
+  .thumb .play svg { width: 12px; height: 12px; color: #fff; margin-left: 2px; }
+  .thumb .num { position: absolute; right: 6px; top: 6px; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 5px; background: rgba(0,0,0,.6); }
+  .thumb .prog { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--accent); transition: width .6s; }
+  .ep .info, .item .info { flex: 1; min-width: 0; }
+  .ep .t, .item .t { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ep .s, .item .s { font-size: 13px; color: var(--dim); margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .s.warn { color: var(--warn) !important; }
+  .s.ok { color: var(--ok) !important; }
+  .state { width: 44px; height: 44px; flex: none; display: grid; place-items: center; }
+  .state svg { width: 24px; height: 24px; }
+  .state.failed { color: var(--warn); }
+  .ring circle { fill: none; stroke-width: 2.4; }
+  .ring .track { stroke: rgba(255,255,255,.16); }
+  .ring .val { stroke: var(--accent); stroke-linecap: round; transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset .6s; }
+  .ring .stop { fill: var(--text); }
+  .pulse svg { animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 50% { opacity: .3; } }
+
+  /* ---- downloads ---- */
+  .section { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--dim); margin: 22px 18px 4px; }
+  .item { display: flex; gap: 12px; align-items: center; padding: 9px 18px; width: 100%; text-align: left; }
+  .item .poster { width: 50px; flex: none; border-radius: 7px; }
+  .bar2 { height: 4px; border-radius: 2px; background: rgba(255,255,255,.1); margin-top: 8px; overflow: hidden; }
+  .bar2 > div { height: 100%; background: var(--accent); border-radius: 2px; transition: width .6s; }
+  .chev { width: 18px; height: 18px; color: var(--faint); flex: none; }
+  .mini { width: 32px; height: 32px; border-radius: 50%; background: var(--elev2); display: grid; place-items: center; flex: none; }
+  .mini svg { width: 15px; height: 15px; }
+  .mini.warn { color: var(--warn); }
+
+  /* ---- grouped settings ---- */
+  .group { margin: 0 18px; background: var(--elev); border-radius: 14px; overflow: hidden; }
+  .cell { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 52px; width: 100%; text-align: left; }
+  .cell + .cell { border-top: 1px solid var(--line); }
+  .cell .grow { flex: 1; min-width: 0; }
+  .cell .v { color: var(--dim); font-size: 14px; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 55%; }
+  .ico { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; color: #fff; }
+  .ico svg { width: 17px; height: 17px; }
+  .cell.action { color: var(--accent); font-weight: 500; justify-content: center; }
+  .cell.danger { color: var(--danger); font-weight: 500; justify-content: center; }
+  .foot { color: var(--dim); font-size: 13px; margin: 8px 32px 0; line-height: 1.45; }
+
+  /* ---- empty / misc ---- */
+  .empty { text-align: center; color: var(--dim); padding: 64px 36px 0; }
+  .empty .ic { width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 16px; display: grid; place-items: center; background: var(--elev); color: var(--accent); }
+  .empty .ic svg { width: 30px; height: 30px; }
+  .empty b { display: block; color: var(--text); font-size: 19px; margin-bottom: 6px; }
+  .err { color: var(--warn); }
+  .spinner { width: 26px; height: 26px; margin: 50px auto; border: 3px solid var(--elev2); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .btn { display: block; width: calc(100% - 36px); margin: 16px 18px 0; height: 50px; border-radius: 14px; background: var(--accent); color: #fff; font-size: 17px; font-weight: 600; }
+
+  /* ---- sheet / toast / player ---- */
+  .scrim { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,.5); opacity: 0; transition: opacity .2s; }
+  .scrim.show { opacity: 1; }
+  .sheet { position: fixed; z-index: 41; left: 8px; right: 8px; bottom: calc(var(--bottom) + 8px); transform: translateY(130%); transition: transform .3s cubic-bezier(.2,.9,.3,1); }
+  .sheet.show { transform: none; }
+  .sheet .grp { background: rgba(38,38,48,.97); border-radius: 14px; overflow: hidden; }
+  .sheet .title { text-align: center; color: var(--dim); font-size: 13px; padding: 14px 16px; }
+  .sheet button { display: block; width: 100%; height: 56px; font-size: 19px; color: var(--accent); border-top: 1px solid var(--line); }
+  .sheet button.destructive { color: var(--danger); }
+  .sheet .cancel { margin-top: 8px; background: rgba(38,38,48,.97); border-radius: 14px; font-weight: 600; border: 0; }
+  #toast { position: fixed; z-index: 50; left: 50%; bottom: calc(var(--tabbar) + 14px); transform: translate(-50%, 10px); max-width: 88%;
+    background: rgba(44,44,56,.97); padding: 11px 16px; border-radius: 14px; font-size: 14px; font-weight: 500; text-align: center;
+    opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; box-shadow: 0 8px 30px rgba(0,0,0,.4); }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+  #player { position: fixed; inset: 0; z-index: 60; background: #000; display: flex; align-items: center; justify-content: center; }
+  #player video { width: 100%; max-height: 100%; }
+  #player .round { position: absolute; top: calc(var(--top) + 10px); left: 14px; }
 </style>
 </head>
 <body>
-<header>
-  <button class="link" id="back" hidden>‹ Back</button>
-  <h1 id="title">Search</h1>
-  <span id="action"></span>
-</header>
-<main id="view"></main>
-<nav id="tabs">
-  <button data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Search</button>
-  <button data-tab="queue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v9m-4-4 4 4 4-4"/></svg>Queue</button>
-  <button data-tab="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z" fill="currentColor"/></svg>Library</button>
-  <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+<div id="app"></div>
+<nav class="tabs" id="tabs" hidden>
+  <button data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>Search</button>
+  <button data-tab="downloads"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/></svg>Downloads<span class="badge" id="badge" hidden></span></button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10m4 0h2M4 17h4m4 0h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Settings</button>
 </nav>
-<div id="player" hidden><video controls playsinline></video><button id="closePlayer">Done</button></div>
+<div id="player" hidden><video controls playsinline></video><button class="round" id="closePlayer" aria-label="Close"></button></div>
 <div id="toast"></div>
 
 <script>
 "use strict";
 
+// ---- icons -----------------------------------------------------------------
+const ICON = {
+  back: '<path d="M15 5l-7 7 7 7"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  down: '<path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/>',
+  retry: '<path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/>',
+  chev: '<path d="m9 5 7 7-7 7"/>',
+  caret: '<path d="m6 9 6 6 6-6"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  play: '<path d="M7 4.5v15l13-7.5z" fill="currentColor" stroke="none"/>',
+  more: '<circle cx="5" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="19" cy="12" r="1.6" fill="currentColor"/>',
+  history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 8v4l3 2"/>',
+  film: '<rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M3 15h18M8 4v16M16 4v16"/>',
+  server: '<rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><path d="M7 7.5h.01M7 16.5h.01"/>',
+  shield: '<path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6z"/>',
+  folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+  wrench: '<path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L4 17l3 3 5.3-5.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/>',
+};
+function icon(name, cls) {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor");
+  s.setAttribute("stroke-width", "2"); s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round");
+  if (cls) s.setAttribute("class", cls);
+  s.innerHTML = ICON[name];
+  return s;
+}
+function ring(pct) {  // progress ring with a stop square, like streaming apps' download buttons
+  const r = 10, c = 2 * Math.PI * r;
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", "0 0 24 24"); s.setAttribute("class", "ring");
+  s.innerHTML = `<circle class="track" cx="12" cy="12" r="${r}"/><circle class="val" cx="12" cy="12" r="${r}"
+    stroke-dasharray="${c}" stroke-dashoffset="${c * (1 - Math.max(pct, 3) / 100)}"/><rect class="stop" x="9" y="9" width="6" height="6" rx="1.2"/>`;
+  return s;
+}
+function $(id) { return document.getElementById(id); }
+$("closePlayer").append(icon("close"));
+
 // ---- state -----------------------------------------------------------------
 const S = {
   token: localStorage.getItem("token") || "",
   tab: "search",
-  stack: { search: [{ name: "search" }], queue: [{ name: "queue" }], library: [{ name: "library" }], settings: [{ name: "settings" }] },
+  stack: { search: [{ name: "search" }], downloads: [{ name: "downloads" }], settings: [{ name: "settings" }] },
   search: { q: "", results: [], loading: false, error: "", searched: false },
-  eps: null,          // { anime, list, selected:Set, loading, error, queueing }
+  eps: {},            // slug -> { list, loading, error }
   jobs: [], jobsError: "",
   shows: null, showsError: "",
   status: null, statusError: "", refreshing: false,
@@ -140,7 +249,6 @@ const hashToken = new URLSearchParams(location.hash.slice(1)).get("token");
 if (hashToken) { S.token = hashToken; localStorage.setItem("token", hashToken); history.replaceState(null, "", "/"); }
 
 // ---- helpers ---------------------------------------------------------------
-const $ = (id) => document.getElementById(id);
 function el(tag, attrs = {}, ...kids) {
   const e = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -150,19 +258,36 @@ function el(tag, attrs = {}, ...kids) {
     else if (k === "style") e.style.cssText = v;
     else e.setAttribute(k, v === true ? "" : v);
   }
-  for (const k of kids.flat()) if (k != null && k !== false) e.append(k instanceof Node ? k : String(k));
+  for (const k of kids.flat()) if (k != null && k !== false && k !== "") e.append(k instanceof Node ? k : String(k));
   return e;
 }
 const withToken = (u) => u + (u.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(S.token);
 const imageUrl = (remote) => remote ? withToken("/api/image?url=" + encodeURIComponent(remote)) : "";
 const fileUrl = (path, download) => withToken("/files/" + path.split("/").map(encodeURIComponent).join("/") + (download ? "?dl=1" : ""));
-const bytes = (n) => n > 1e9 ? (n / 1e9).toFixed(2) + " GB" : Math.round(n / 1e6) + " MB";
+const img = (remote, cls) => el("img", { class: cls, src: imageUrl(remote) || null, loading: "lazy", alt: "", onerror: (e) => e.target.removeAttribute("src") });
+const bytes = (n) => n >= 1e9 ? (n / 1e9).toFixed(1) + " GB" : Math.round(n / 1e6) + " MB";
 const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+const minutes = (d) => { const m = /^(\d+):(\d+):(\d+)$/.exec(d || ""); return m ? (+m[1] * 60 + +m[2]) + "m" : ""; };
+const day = (d) => { const t = new Date((d || "").replace(" ", "T")); return isNaN(t) ? "" : t.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }); };
+const active = (j) => j.status === "queued" || j.status === "downloading";
+const showInfo = (a) => [a.type, a.year, a.episodes ? plural(a.episodes, "episode") : null].filter(Boolean).join(" · ");
 
 let toastTimer;
 function toast(msg) {
   const t = $("toast"); t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function sheet(title, actions) {  // iOS-style action sheet
+  const scrim = el("div", { class: "scrim" });
+  const close = () => { scrim.classList.remove("show"); box.classList.remove("show"); setTimeout(() => { scrim.remove(); box.remove(); }, 300); };
+  const box = el("div", { class: "sheet" },
+    el("div", { class: "grp" }, title && el("div", { class: "title" }, title),
+      actions.map(([label, fn, style]) => el("button", { class: style || null, onclick: () => { close(); fn(); } }, label))),
+    el("button", { class: "cancel", onclick: close }, "Cancel"));
+  scrim.addEventListener("click", close);
+  document.body.append(scrim, box);
+  requestAnimationFrame(() => requestAnimationFrame(() => { scrim.classList.add("show"); box.classList.add("show"); }));
 }
 
 async function api(method, path, body, signal) {
@@ -178,44 +303,59 @@ async function api(method, path, body, signal) {
 }
 
 // ---- navigation ------------------------------------------------------------
-const top_ = () => S.stack[S.tab][S.stack[S.tab].length - 1];
+const current = () => S.stack[S.tab][S.stack[S.tab].length - 1];
 function push(screen) { S.stack[S.tab].push(screen); render(); window.scrollTo(0, 0); }
 function pop() { S.stack[S.tab].pop(); render(); }
 function switchTab(tab) {
   if (S.tab === tab && S.stack[tab].length > 1) S.stack[tab] = S.stack[tab].slice(0, 1);  // tap again = back to root
   S.tab = tab; render(); window.scrollTo(0, 0);
-  if (tab === "queue") loadJobs();
-  if (tab === "library") loadShows();
+  if (tab === "downloads") { loadJobs(); loadShows(); }
   if (tab === "settings") loadStatus();
 }
 document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => switchTab(b.dataset.tab)));
-$("back").addEventListener("click", pop);
 
 function render() {
-  const view = $("view"), action = $("action");
-  view.replaceChildren(); action.replaceChildren();
-  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === S.tab));
+  const app = $("app");
+  app.replaceChildren();
   $("tabs").hidden = !S.token;
-  if (!S.token) return renderLogin(view);
-  const screen = top_();
-  $("back").hidden = S.stack[S.tab].length < 2;
-  const screens = { search: renderSearch, episodes: renderEpisodes, queue: renderQueue, library: renderLibrary, show: renderShow, settings: renderSettings };
-  screens[screen.name](view, action, screen);
+  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === S.tab));
+  updateBadge();
+  if (!S.token) return renderLogin(app);
+  const screen = current();
+  ({ search: renderSearch, show: renderShow, downloads: renderDownloads, local: renderLocalShow, settings: renderSettings })[screen.name](app, screen);
+  onScroll();
 }
-const setTitle = (t) => { $("title").textContent = t; };
+// Re-render live data without disturbing the search box while typing.
+function refresh() { if (current().name !== "search") render(); else updateBadge(); }
+function updateBadge() {
+  const n = S.jobs.filter(active).length, b = $("badge");
+  b.hidden = !n; b.textContent = n;
+}
+
+function bar(title) {  // nav bar for pushed screens: transparent over the hero, title fades in on scroll
+  return el("div", { class: "bar", id: "bar" },
+    el("button", { class: "round press", onclick: pop, "aria-label": "Back" }, icon("back")),
+    el("h2", {}, title), el("span"));
+}
+function onScroll() { const b = $("bar"); if (b) b.classList.toggle("scrolled", window.scrollY > 90); }
+window.addEventListener("scroll", onScroll, { passive: true });
+
+function emptyState(ic, title, text) {
+  return el("div", { class: "empty" }, el("div", { class: "ic" }, icon(ic)), el("b", {}, title), el("div", {}, text));
+}
 
 // ---- login -----------------------------------------------------------------
-function renderLogin(view) {
-  setTitle("AnimeDL"); $("back").hidden = true;
-  const input = el("input", { type: "password", placeholder: "Token", autocomplete: "off", autocapitalize: "off" });
-  view.append(
-    el("p", { class: "note" }, "Enter the token printed by server.py on your Mac (or run: cat server/.token)."),
-    el("div", { class: "list" }, el("div", { class: "field" }, el("span", {}, "Token"), input)),
-    el("button", { class: "btn full", onclick: () => {
-      const t = input.value.trim(); if (!t) return;
-      S.token = t; localStorage.setItem("token", t); render(); loadStatus();
-    } }, "Sign In"),
-  );
+function renderLogin(app) {
+  const input = el("input", { type: "password", placeholder: "Server token", autocomplete: "off", autocapitalize: "off" });
+  const go = () => { const t = input.value.trim(); if (!t) return; S.token = t; localStorage.setItem("token", t); render(); loadJobs(); loadShows(); };
+  app.append(el("main", {},
+    el("div", { class: "empty", style: "padding-top:calc(var(--top) + 90px)" },
+      el("img", { src: "/icon.png", style: "width:76px;height:76px;border-radius:18px;margin-bottom:18px" }),
+      el("b", { style: "font-size:24px" }, "AnimeDL"),
+      el("div", {}, "Enter the token printed by server.py on your Mac.")),
+    el("div", { class: "pad", style: "margin-top:26px" },
+      el("form", { onsubmit: (e) => { e.preventDefault(); go(); } }, el("div", { class: "field" }, icon("shield"), input))),
+    el("button", { class: "btn press", onclick: go }, "Sign In")));
 }
 
 // ---- search ----------------------------------------------------------------
@@ -225,14 +365,18 @@ function addRecent(title) {
   localStorage.setItem("recents", JSON.stringify([title, ...recents().filter((t) => t !== title)].slice(0, 8)));
 }
 
-function renderSearch(view) {
-  setTitle("Search");
-  const input = el("input", { type: "search", placeholder: "Anime title", value: S.search.q, enterkeyhint: "search",
-    autocapitalize: "off", autocorrect: "off", autocomplete: "off", oninput: (e) => onType(e.target.value) });
-  const form = el("form", { class: "search", onsubmit: (e) => {
-    e.preventDefault(); input.blur(); clearTimeout(searchTimer); doSearch(input.value);
-  } }, input);
-  view.append(form, el("div", { id: "results" }));
+function renderSearch(app) {
+  const input = el("input", { type: "search", placeholder: "Search anime", value: S.search.q, enterkeyhint: "search",
+    autocapitalize: "off", autocorrect: "off", autocomplete: "off", spellcheck: "false", oninput: (e) => { syncClear(); onType(e.target.value); } });
+  const clear = el("button", { class: "clear", type: "button", "aria-label": "Clear", onclick: () => { input.value = ""; syncClear(); onType(""); input.focus(); } }, icon("close"));
+  const syncClear = () => { clear.hidden = !input.value; };
+  syncClear();
+  app.append(
+    el("div", { class: "large" }, el("h1", {}, "Search")),
+    el("div", { class: "searchbox" },
+      el("form", { onsubmit: (e) => { e.preventDefault(); input.blur(); clearTimeout(searchTimer); doSearch(input.value); } },
+        el("div", { class: "field" }, icon("search"), input, clear))),
+    el("main", { id: "results" }));
   renderResults();
 }
 
@@ -254,23 +398,27 @@ function renderResults() {
   if (!box) return;
   box.replaceChildren();
   const s = S.search;
-  if (s.loading && !s.results.length) return box.append(el("div", { class: "spinner" }));
-  if (s.error) return box.append(el("div", { class: "empty" }, el("b", {}, "Search failed"), el("span", { class: "error" }, s.error)));
-  if (!s.results.length) {
-    if (s.searched) return box.append(el("div", { class: "empty" }, el("b", {}, "No results"), "Try a different title."));
-    const recent = recents();
-    if (!recent.length) return box.append(el("div", { class: "empty" }, el("b", {}, "Search animepahe"), "Start typing a title."));
-    return box.append(el("div", { class: "section" }, "Recent"), el("div", { class: "list" }, recent.map((t) =>
-      el("button", { class: "row", onclick: () => { document.querySelector(".search input").value = t; S.search.q = t; doSearch(t); } },
-        el("div", { class: "grow" }, t), el("span", { class: "chev" }, "↖")))));
+  if (s.loading && !s.results.length) {
+    return box.append(el("div", { class: "grid" }, Array.from({ length: 9 }, () => el("div", { class: "tile" },
+      el("div", { class: "poster skel" }), el("div", { class: "skel skel-line" }), el("div", { class: "skel skel-line", style: "width:50%" })))));
   }
-  box.append(el("div", { class: "list", style: s.loading ? "opacity:.55" : "" }, s.results.map((a) =>
-    el("button", { class: "row", onclick: () => { addRecent(a.title); openAnime(a); } },
-      el("img", { class: "poster", src: imageUrl(a.poster), loading: "lazy", alt: "" }),
-      el("div", { class: "grow" }, el("div", { class: "t" }, a.title), el("div", { class: "s" }, subtitle(a))),
-      el("span", { class: "chev" }, "›")))));
+  if (s.error) return box.append(emptyState("search", "Search failed", el("span", { class: "err" }, s.error)));
+  if (!s.results.length) {
+    if (s.searched) return box.append(emptyState("search", "No results", `Nothing found for “${s.q.trim()}”.`));
+    const recent = recents();
+    if (!recent.length) return box.append(emptyState("film", "Find something to watch", "Search animepahe by title. Results appear as you type."));
+    return box.append(
+      el("div", { class: "h3" }, "Recent", el("button", { class: "textbtn", onclick: () => { localStorage.removeItem("recents"); renderResults(); } }, "Clear")),
+      ...recent.map((t) => el("button", { class: "recent press", onclick: () => {
+        const input = document.querySelector(".field input"); input.value = t; input.dispatchEvent(new Event("input")); clearTimeout(searchTimer); doSearch(t);
+      } }, icon("history"), el("span", {}, t))));
+  }
+  box.append(el("div", { class: "grid", style: s.loading ? "opacity:.5;transition:opacity .2s" : "" }, s.results.map((a) =>
+    el("button", { class: "tile press", onclick: () => { addRecent(a.title); openShow(a); } },
+      img(a.poster, "poster"),
+      el("div", { class: "t" }, a.title),
+      el("div", { class: "s" }, [a.type, a.year].filter(Boolean).join(" · "))))));
 }
-const subtitle = (a) => [a.type, a.year, a.episodes ? a.episodes + " eps" : null, a.status].filter(Boolean).join(" · ");
 
 async function doSearch(q) {
   q = q.trim(); if (!q) return;
@@ -288,181 +436,267 @@ async function doSearch(q) {
   S.search.loading = false; renderResults();
 }
 
-// ---- episodes --------------------------------------------------------------
-async function openAnime(anime) {
-  S.eps = { anime, list: [], selected: new Set(), loading: true, error: "", queueing: false };
-  push({ name: "episodes" });
-  try { S.eps.list = await api("GET", "/api/episodes?slug=" + encodeURIComponent(anime.slug)); }
-  catch (e) { S.eps.error = e.message; }
-  S.eps.loading = false;
-  if (top_().name === "episodes") render();
+// ---- show page (episodes with per-episode download buttons) ----------------
+function openShow(anime) {
+  push({ name: "show", anime });
+  loadEpisodes(anime.slug);
+  if (!S.shows) loadShows();
+  loadJobs();
+}
+async function loadEpisodes(slug) {
+  S.eps[slug] = { list: S.eps[slug] ? S.eps[slug].list : [], loading: true, error: "" };
+  try { S.eps[slug].list = await api("GET", "/api/episodes?slug=" + encodeURIComponent(slug)); }
+  catch (e) { S.eps[slug].error = e.message; }
+  S.eps[slug].loading = false;
+  refresh();
 }
 
-function renderEpisodes(view, action) {
-  const E = S.eps, a = E.anime;
-  setTitle(a.title);
-  const all = E.list.length > 0 && E.selected.size === E.list.length;
-  action.append(el("button", { class: "link", disabled: !E.list.length, onclick: () => {
-    E.selected = all ? new Set() : new Set(E.list.map((e) => e.episode)); render();
-  } }, all ? "None" : "All"));
-
-  view.append(el("div", { class: "hero" },
-    el("img", { src: imageUrl(a.poster), alt: "" }),
-    el("div", {}, el("div", { class: "t" }, a.title), el("div", { class: "s" }, subtitle(a)))));
-
-  const select = (key, options) => el("select", { onchange: (e) => { prefs[key] = e.target.value; localStorage.setItem(key, e.target.value); } },
-    options.map(([v, label]) => el("option", { value: v, selected: prefs[key] === v }, label)));
-  view.append(
-    el("div", { class: "list" },
-      el("div", { class: "field" }, el("span", {}, "Resolution"), select("res", [["", "Default (1080p)"], ["1080", "1080p"], ["720", "720p"], ["360", "360p"]])),
-      el("div", { class: "field" }, el("span", {}, "Audio"), select("audio", [["", "Default"], ["jpn", "Japanese"], ["eng", "English"]]))),
-    el("p", { class: "note" }, "If a choice isn't available, the downloader falls back to 1080p."));
-
-  if (E.loading) return view.append(el("div", { class: "spinner" }));
-  if (E.error) return view.append(el("div", { class: "empty" }, el("b", {}, "Couldn't load episodes"), el("span", { class: "error" }, E.error)));
-
-  view.append(el("div", { class: "section" }, plural(E.list.length, "episode")),
-    el("div", { class: "list" }, E.list.map((ep) => {
-      const on = E.selected.has(ep.episode);
-      const details = [ep.title, ep.duration, ep.audio].filter(Boolean).join(" · ");
-      return el("button", { class: "row", onclick: () => { on ? E.selected.delete(ep.episode) : E.selected.add(ep.episode); render(); } },
-        el("span", { class: "check" + (on ? " on" : "") }),
-        el("div", { class: "grow" }, el("div", {}, "Episode " + ep.episode), details && el("div", { class: "s" }, details)));
-    })));
-
-  if (E.selected.size) view.append(el("button", { class: "cta", disabled: E.queueing, onclick: queueSelected },
-    E.queueing ? "Queueing…" : "Download " + plural(E.selected.size, "episode")));
+// What each episode of a show is right now: saved on the Mac, downloading, queued, failed, or nothing.
+function episodeStates(slug) {
+  const states = {};
+  for (const j of S.jobs) if (j.slug === slug && j.status !== "done") states[j.episode] = { kind: j.status, job: j };
+  const show = (S.shows || []).find((s) => s.slug === slug);
+  if (show) for (const f of show.episodes) states[f.episode] = { kind: "saved", file: f };
+  return states;
 }
 
-async function queueSelected() {
-  const E = S.eps; E.queueing = true; render();
-  const episodes = E.list.map((e) => e.episode).filter((n) => E.selected.has(n));  // keep episode order
+function renderShow(app, screen) {
+  const a = screen.anime, E = S.eps[a.slug] || { list: [], loading: true }, states = episodeStates(a.slug);
+  app.append(bar(a.title));
+  const main = el("main", {});
+  app.append(main);
+
+  main.append(el("div", { class: "hero" },
+    el("div", { class: "backdrop", style: a.poster ? `background-image:url("${imageUrl(a.poster)}")` : "" }),
+    el("div", { class: "row" }, img(a.poster, "poster"),
+      el("div", {}, el("h1", {}, a.title),
+        el("div", { class: "meta" },
+          a.score ? el("span", {}, el("span", { class: "star" }, "★ "), Number(a.score).toFixed(2)) : null,
+          showInfo(a) && el("span", {}, showInfo(a)),
+          a.status && el("span", { class: "tag" }, a.status))))));
+
+  // Episodes that aren't on the Mac or on their way there yet.
+  const missing = E.list.filter((e) => !states[e.episode] || ["failed", "cancelled"].includes(states[e.episode].kind));
+  const pick = (key, label, options) => {
+    const cur = options.find(([v]) => v === prefs[key]) || options[0];
+    return el("label", { class: "pill press" }, el("span", {}, cur[1]), icon("caret"),
+      el("select", { "aria-label": label, onchange: (e) => { prefs[key] = e.target.value; localStorage.setItem(key, e.target.value); render(); } },
+        options.map(([v, l]) => el("option", { value: v, selected: prefs[key] === v }, l))));
+  };
+  main.append(el("div", { class: "controls" },
+    pick("res", "Quality", [["", "1080p"], ["720", "720p"], ["360", "360p"]]),
+    pick("audio", "Audio", [["", "Any audio"], ["jpn", "Japanese"], ["eng", "English"]]),
+    el("button", { class: "textbtn press", disabled: !missing.length, onclick: () => sheet(
+      `Download ${plural(missing.length, "episode")} to your Mac?`,
+      [[missing.length === E.list.length ? `Download All ${missing.length}` : `Download Remaining ${missing.length}`, () => queue(a, missing.map((e) => e.episode))]]) },
+      icon("down"), "All")));
+
+  if (E.loading && !E.list.length) return main.append(el("div", { class: "spinner" }));
+  if (E.error && !E.list.length) return main.append(emptyState("film", "Couldn't load episodes", el("span", { class: "err" }, E.error)));
+
+  const saved = Object.values(states).filter((s) => s.kind === "saved").length;
+  main.append(el("div", { class: "h3" }, "Episodes", el("small", {}, saved ? `${saved} of ${E.list.length} downloaded` : plural(E.list.length, "episode"))));
+  main.append(...E.list.map((ep) => episodeRow(a, ep, states[ep.episode])));
+}
+
+function episodeRow(a, ep, st) {
+  const kind = st ? st.kind : "none";
+  const title = ep.title || `Episode ${ep.episode}`;
+  let sub = [minutes(ep.duration), day(ep.createdAt)].filter(Boolean).join(" · ");
+  let button, onRow = null, subClass = "s";
+  if (kind === "saved") {
+    button = el("button", { class: "state press", "aria-label": "More", onclick: (e) => { e.stopPropagation(); savedActions(a.title, st.file); } }, icon("more"));
+    sub = ["Downloaded", bytes(st.file.size)].join(" · "); subClass = "s ok";
+    onRow = () => play(st.file);
+  } else if (kind === "downloading") {
+    button = el("button", { class: "state press", "aria-label": "Cancel", onclick: () => cancelJob(st.job) }, ring(st.job.progress));
+    sub = `Downloading · ${Math.round(st.job.progress)}%`;
+  } else if (kind === "queued") {
+    button = el("button", { class: "state press pulse", "aria-label": "Cancel", onclick: () => cancelJob(st.job) }, icon("clock"));
+    sub = "Waiting to download";
+  } else if (kind === "failed" || kind === "cancelled") {
+    button = el("button", { class: "state failed press", "aria-label": "Retry", onclick: () => retry(st.job) }, icon("retry"));
+    sub = kind === "cancelled" ? "Cancelled" : st.job.message || "Download failed"; subClass = "s warn";
+  } else {
+    button = el("button", { class: "state press", "aria-label": "Download", onclick: () => queue(a, [ep.episode]) }, icon("down"));
+  }
+  const thumb = el("div", { class: "thumb" }, img(ep.snapshot),
+    el("span", { class: "num" }, "E" + ep.episode),
+    kind === "saved" && el("span", { class: "play" }, icon("play")),
+    kind === "downloading" && el("span", { class: "prog", style: `width:${st.job.progress}%` }));
+  return el("div", { class: "ep" + (onRow ? " press" : ""), onclick: onRow },
+    thumb, el("div", { class: "info" }, el("div", { class: "t" }, title), el("div", { class: subClass }, sub)), button);
+}
+
+async function queue(a, episodes) {
   try {
-    await api("POST", "/api/downloads", { slug: E.anime.slug, title: E.anime.title, episodes, resolution: prefs.res, audio: prefs.audio });
-    E.selected = new Set();
-    toast(`Queued ${plural(episodes.length, "episode")} — see the Queue tab`);
+    await api("POST", "/api/downloads", { slug: a.slug, title: a.title, episodes, resolution: prefs.res, audio: prefs.audio, anime: a });
+    toast(episodes.length === 1 ? `Episode ${episodes[0]} is downloading to your Mac` : `${plural(episodes.length, "episode")} added to Downloads`);
   } catch (e) { toast(e.message); }
-  E.queueing = false; render();
+  loadJobs();
 }
-
-// ---- queue -----------------------------------------------------------------
-async function loadJobs() {
-  try { S.jobs = (await api("GET", "/api/downloads")).reverse(); S.jobsError = ""; }
-  catch (e) { S.jobsError = e.message; }
-  if (S.tab === "queue" && S.token) render();
+function cancelJob(j) {
+  sheet(`Episode ${j.episode} · ${j.title}`, [["Cancel Download", async () => {
+    try { await api("DELETE", "/api/downloads?id=" + j.id); } catch (e) { toast(e.message); }
+    loadJobs();
+  }, "destructive"]]);
 }
-setInterval(() => { if (S.tab === "queue" && S.token && !document.hidden) loadJobs(); }, 2000);
-
-function renderQueue(view, action) {
-  setTitle("Queue");
-  action.append(el("button", { class: "link", disabled: !S.jobs.some((j) => !active(j)),
-    onclick: () => jobAction(() => api("DELETE", "/api/downloads?finished=1")) }, "Clear"));
-  if (S.jobsError) return view.append(el("div", { class: "empty" }, el("b", {}, "Can't reach the server"), el("span", { class: "error" }, S.jobsError)));
-  if (!S.jobs.length) return view.append(el("div", { class: "empty" }, el("b", {}, "Nothing queued"), "Pick episodes in Search to download them on your Mac."));
-  view.append(el("div", { class: "list" }, S.jobs.map((j) => el("div", { class: "row" },
-    el("span", { class: "dot " + j.status }),
-    el("div", { class: "grow" },
-      el("div", { class: "t" }, `${j.title} · Ep ${j.episode}`),
-      el("div", { class: "s" + (j.status === "failed" ? " error" : "") }, j.message || cap(j.status)),
-      j.status === "downloading" && el("div", { class: "bar" }, el("div", { style: `width:${j.progress}%` }))),
-    el("div", { class: "actions" },
-      (j.status === "failed" || j.status === "cancelled") && el("button", { class: "btn", onclick: () => jobAction(() => retry(j)) }, "Retry"),
-      el("button", { class: "btn danger", onclick: () => jobAction(() => api("DELETE", "/api/downloads?id=" + j.id)) }, active(j) ? "Cancel" : "✕"))))));
-}
-const active = (j) => j.status === "queued" || j.status === "downloading";
-const cap = (s) => s[0].toUpperCase() + s.slice(1);
 async function retry(j) {
-  await api("POST", "/api/downloads", { slug: j.slug, title: j.title, episodes: [j.episode], resolution: j.resolution, audio: j.audio });
-  await api("DELETE", "/api/downloads?id=" + j.id);
+  try {
+    await api("POST", "/api/downloads", { slug: j.slug, title: j.title, episodes: [j.episode], resolution: j.resolution, audio: j.audio, anime: j.info });
+    await api("DELETE", "/api/downloads?id=" + j.id);
+  } catch (e) { toast(e.message); }
+  loadJobs();
 }
-async function jobAction(fn) { try { await fn(); } catch (e) { toast(e.message); } loadJobs(); }
-
-// ---- library ---------------------------------------------------------------
-async function loadShows() {
-  try { S.shows = await api("GET", "/api/library"); S.showsError = ""; }
-  catch (e) { S.showsError = e.message; }
-  if (S.tab === "library") render();
+function savedActions(title, file) {
+  sheet(`Episode ${file.episode} · ${title}`, [
+    ["Play", () => play(file)],
+    ["Save to Files", () => { const a = el("a", { href: fileUrl(file.path, true), download: `${title} - ${file.episode}.mp4` }); document.body.append(a); a.click(); a.remove(); }],
+    ["Delete from Mac", () => deleteEpisode(file), "destructive"],
+  ]);
 }
-
-function renderLibrary(view) {
-  setTitle("Library");
-  if (S.showsError) return view.append(el("div", { class: "empty" }, el("b", {}, "Can't reach the server"), el("span", { class: "error" }, S.showsError)));
-  if (!S.shows) return view.append(el("div", { class: "spinner" }));
-  if (!S.shows.length) return view.append(el("div", { class: "empty" }, el("b", {}, "No downloads yet"), "Finished episodes on your Mac show up here."));
-  view.append(el("div", { class: "list" }, S.shows.map((show) =>
-    el("button", { class: "row", onclick: () => push({ name: "show", show: show.name }) },
-      el("div", { class: "grow" }, el("div", { class: "t" }, show.title),
-        el("div", { class: "s" }, plural(show.episodes.length, "episode") + " · " + bytes(show.episodes.reduce((n, e) => n + e.size, 0)))),
-      el("span", { class: "chev" }, "›")))));
-}
-
-function renderShow(view, _action, screen) {
-  const show = (S.shows || []).find((s) => s.name === screen.show);
-  setTitle(show ? show.title : screen.show);
-  if (!show) return view.append(el("div", { class: "empty" }, "This show has no downloaded episodes."));
-  view.append(el("div", { class: "list" }, show.episodes.map((ep) => el("div", { class: "row" },
-    el("div", { class: "grow" }, el("div", {}, "Episode " + ep.episode), el("div", { class: "s" }, bytes(ep.size))),
-    el("div", { class: "actions" },
-      el("button", { class: "btn", onclick: () => play(fileUrl(ep.path)) }, "▶ Play"),
-      el("a", { class: "btn", href: fileUrl(ep.path, true), download: `${show.title} - ${ep.episode}.mp4` }, "Save"),
-      el("button", { class: "btn danger", onclick: () => deleteEpisode(ep) }, "✕"))))),
-    el("p", { class: "note" }, "Save downloads the episode to the Files app for offline viewing. ✕ deletes it from the Mac."));
-}
-
-async function deleteEpisode(ep) {
-  if (!confirm(`Delete episode ${ep.episode} from the Mac?`)) return;
-  try { await api("DELETE", "/api/library?path=" + encodeURIComponent(ep.path)); } catch (e) { toast(e.message); }
+async function deleteEpisode(file) {
+  try { await api("DELETE", "/api/library?path=" + encodeURIComponent(file.path)); toast("Deleted from your Mac"); } catch (e) { toast(e.message); }
   await loadShows();
 }
 
-function play(src) {
+// ---- player ----------------------------------------------------------------
+function play(file) {
   const p = $("player"), v = p.querySelector("video");
-  v.src = src; p.hidden = false; v.play().catch(() => {});
+  v.src = fileUrl(file.path); p.hidden = false;
+  v.play().then(() => { if (v.webkitEnterFullscreen) v.webkitEnterFullscreen(); }).catch(() => {});
 }
-$("closePlayer").addEventListener("click", () => {
+function closePlayer() {
   const p = $("player"), v = p.querySelector("video");
   v.pause(); v.removeAttribute("src"); v.load(); p.hidden = true;
-});
+}
+$("closePlayer").addEventListener("click", closePlayer);
+document.querySelector("#player video").addEventListener("webkitendfullscreen", closePlayer);  // iPhone's native player closed
+
+// ---- downloads tab ---------------------------------------------------------
+let doneCount = -1;
+async function loadJobs() {
+  try {
+    S.jobs = await api("GET", "/api/downloads"); S.jobsError = "";
+    const done = S.jobs.filter((j) => j.status === "done").length;
+    if (doneCount >= 0 && done !== doneCount) loadShows();  // a download finished: refresh the library
+    doneCount = done;
+  } catch (e) { S.jobsError = e.message; }
+  refresh();
+}
+async function loadShows() {
+  try { S.shows = await api("GET", "/api/library"); S.showsError = ""; }
+  catch (e) { S.showsError = e.message; }
+  refresh();
+}
+// Poll while something is downloading or the Downloads tab is open.
+setInterval(() => {
+  if (S.token && !document.hidden && (S.tab === "downloads" || S.jobs.some(active))) loadJobs();
+}, 2000);
+
+function renderDownloads(app) {
+  const failed = S.jobs.filter((j) => j.status === "failed" || j.status === "cancelled");
+  app.append(el("div", { class: "large" }, el("h1", {}, "Downloads"),
+    failed.length ? el("button", { class: "textbtn", onclick: async () => { await api("DELETE", "/api/downloads?finished=1").catch(() => {}); loadJobs(); } }, "Clear Failed") : null));
+  const main = el("main", {});
+  app.append(main);
+  if (S.jobsError || S.showsError) return main.append(emptyState("server", "Can't reach your Mac", el("span", { class: "err" }, S.jobsError || S.showsError)));
+
+  const running = S.jobs.filter((j) => j.status !== "done").sort((x, y) => x.createdAt - y.createdAt);
+  if (running.length) {
+    main.append(el("div", { class: "section" }, "Downloading"));
+    main.append(...running.map((j) => {
+      const bad = j.status === "failed" || j.status === "cancelled";
+      const sub = bad ? (j.status === "cancelled" ? "Cancelled" : j.message || "Failed") : j.status === "queued" ? "Waiting" : j.message || "Starting…";
+      return el("div", { class: "item" },
+        img(j.poster, "poster"),
+        el("div", { class: "info" },
+          el("div", { class: "t" }, j.title),
+          el("div", { class: "s" + (bad ? " warn" : "") }, `Episode ${j.episode} · ${sub}`),
+          j.status === "downloading" && el("div", { class: "bar2" }, el("div", { style: `width:${j.progress}%` }))),
+        bad
+          ? el("button", { class: "mini warn press", "aria-label": "Retry", onclick: () => retry(j) }, icon("retry"))
+          : el("button", { class: "mini press", "aria-label": "Cancel", onclick: () => cancelJob(j) }, icon("close")));
+    }));
+  }
+
+  if (!S.shows) return main.append(el("div", { class: "spinner" }));
+  if (S.shows.length) {
+    main.append(el("div", { class: "section" }, "On your Mac"));
+    main.append(...S.shows.map((show) => {
+      const size = show.episodes.reduce((n, e) => n + e.size, 0);
+      return el("button", { class: "item press", onclick: () => show.slug ? openShow(showAsAnime(show)) : push({ name: "local", show: show.name }) },
+        img(show.poster, "poster"),
+        el("div", { class: "info" }, el("div", { class: "t" }, show.title),
+          el("div", { class: "s" }, `${plural(show.episodes.length, "episode")} · ${bytes(size)}`)),
+        icon("chev", "chev"));
+    }));
+  } else if (!running.length) {
+    main.append(emptyState("down", "No downloads yet", "Tap ↓ next to any episode. Your Mac downloads it and it shows up here."));
+  }
+}
+const showAsAnime = (s) => ({ slug: s.slug, title: s.title, poster: s.poster, type: s.type, year: s.year, episodes: s.episodeCount, status: s.status, score: s.score });
+
+// Older downloads without saved show info: plain list of the local files.
+function renderLocalShow(app, screen) {
+  const show = (S.shows || []).find((s) => s.name === screen.show);
+  app.append(bar(show ? show.title : screen.show));
+  const main = el("main", { style: "padding-top:8px" });
+  app.append(main);
+  if (!show) return main.append(emptyState("film", "Nothing here", "This show has no downloaded episodes."));
+  main.append(...show.episodes.map((f) => el("div", { class: "ep press", onclick: () => play(f) },
+    el("div", { class: "thumb" }, el("span", { class: "num" }, "E" + f.episode), el("span", { class: "play" }, icon("play"))),
+    el("div", { class: "info" }, el("div", { class: "t" }, `Episode ${f.episode}`), el("div", { class: "s" }, bytes(f.size))),
+    el("button", { class: "state press", onclick: (e) => { e.stopPropagation(); savedActions(show.title, f); } }, icon("more")))));
+}
 
 // ---- settings --------------------------------------------------------------
 async function loadStatus() {
   try { S.status = await api("GET", "/api/status"); S.statusError = ""; }
   catch (e) { S.status = null; S.statusError = e.message; }
-  if (S.tab === "settings") render();
+  refresh();
 }
 
-function renderSettings(view) {
-  setTitle("Settings");
+function renderSettings(app) {
   const st = S.status;
-  const line = (ok, text) => el("div", { class: "field" }, el("span", {}, text), el("span", { style: `color:var(${ok ? "--ok" : "--warn"})` }, ok ? "✓" : "!"));
-  view.append(el("div", { class: "section" }, "Mac server"));
-  if (S.statusError) view.append(el("div", { class: "list" }, el("div", { class: "field error" }, S.statusError)));
-  else if (!st) view.append(el("div", { class: "spinner" }));
-  else view.append(el("div", { class: "list" },
-    line(true, "Connected to " + location.host),
-    line(!st.missing.length, st.missing.length ? "Missing: " + st.missing.join(", ") : "All tools installed"),
-    line(st.configured, st.configured ? "Cloudflare cookie set" : "Cloudflare cookie not set"),
-    el("div", { class: "field" }, el("span", {}, "Downloads"), el("span", { class: "s", style: "color:var(--dim);font-size:13px;text-align:right;word-break:break-all" }, st.downloadDir))));
+  app.append(el("div", { class: "large" }, el("h1", {}, "Settings")));
+  const main = el("main", {});
+  app.append(main);
+  const cell = (ic, color, label, value, ok) => el("div", { class: "cell" },
+    el("span", { class: "ico", style: `background:${color}` }, icon(ic)),
+    el("span", { class: "grow" }, label),
+    value != null && el("span", { class: "v", style: ok === false ? "color:var(--warn)" : ok ? "color:var(--ok)" : "" }, value));
 
-  view.append(
+  main.append(el("div", { class: "section" }, "Mac server"));
+  if (S.statusError) main.append(el("div", { class: "group" }, el("div", { class: "cell err" }, S.statusError)));
+  else if (!st) main.append(el("div", { class: "spinner" }));
+  else main.append(el("div", { class: "group" },
+    cell("server", "#5b6cff", "Connected", location.host, true),
+    cell("wrench", "#6e6e78", "Tools", st.missing.length ? "Missing " + st.missing.join(", ") : "All installed", !st.missing.length),
+    cell("shield", "#ff9500", "Cloudflare cookie", st.configured ? "Active" : "Not set", st.configured),
+    cell("folder", "#34aadc", "Saved to", st.downloadDir.split("/").slice(-2).join("/"))));
+
+  main.append(
     el("div", { class: "section" }, "Cloudflare"),
-    el("button", { class: "btn full", disabled: S.refreshing, onclick: refreshCookie }, S.refreshing ? "Reading Chrome…" : "Refresh from Chrome"),
-    el("p", { class: "note" }, "The server reads animepahe's Cloudflare cookie from Chrome on your Mac by itself. If searches keep failing, open animepahe.pw in Chrome on the Mac, pass the check, then tap Refresh."),
+    el("div", { class: "group" }, el("button", { class: "cell action press", disabled: S.refreshing, onclick: refreshCookie },
+      S.refreshing ? "Checking…" : "Check & Renew Cookie")),
+    el("div", { class: "foot" }, "Your Mac renews animepahe's Cloudflare cookie through Chrome every 10 minutes. Use this if searches start failing."),
     el("div", { class: "section" }, "This device"),
-    el("p", { class: "note" }, "Install as an app: in Safari tap Share → Add to Home Screen."),
-    el("button", { class: "btn full danger", onclick: () => { if (confirm("Sign out of this device?")) { localStorage.removeItem("token"); S.token = ""; render(); } } }, "Sign Out"));
+    el("div", { class: "group" }, el("button", { class: "cell danger press", onclick: () => sheet("Sign out of AnimeDL on this device?", [
+      ["Sign Out", () => { localStorage.removeItem("token"); S.token = ""; render(); }, "destructive"]]) }, "Sign Out")),
+    el("div", { class: "foot" }, "Tip: in Safari, tap Share → Add to Home Screen to use AnimeDL like an app."));
 }
 
 async function refreshCookie() {
   S.refreshing = true; render();
-  try { S.status = await api("POST", "/api/config/refresh"); toast("Got a fresh cookie from Chrome"); }
+  try { S.status = await api("POST", "/api/config/refresh"); toast("Cloudflare cookie is working"); }
   catch (e) { toast(e.message); }
   S.refreshing = false; render();
 }
 
 // ---- start -----------------------------------------------------------------
 render();
-if (S.token) loadStatus();
+if (S.token) { loadJobs(); loadShows(); }
 </script>
 </body>
 </html>

@@ -45,9 +45,12 @@ The server also serves the app as a web page (`server/web/`).
 3. Tap **Share → Add to Home Screen**. AnimeDL then opens full-screen from its own icon.
    Home Screen apps don't share storage with Safari, so the first time you open it from the icon, paste the token once.
 
-The web app has Search, Queue, Library and Settings, like the native app.
-- **Play** streams an episode from the Mac.
-- **Save** downloads it to the Files app for offline viewing.
+The web app has three tabs:
+- **Search:** results appear as a poster grid while you type.
+- **Downloads:** progress for episodes being downloaded, then your shows on the Mac.
+- **Settings.**
+
+On a show's page, each episode has its own download button: ↓, then a progress ring, then downloaded. **All** downloads the rest of the show. Tap a downloaded episode to play it. Its **•••** menu has **Save to Files** for offline viewing and **Delete from Mac**.
 
 If Cloudflare blocks a request, the server reopens animepahe in Chrome in the background, picks up the fresh cookie and retries. This happens automatically.
 

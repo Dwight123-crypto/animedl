@@ -241,13 +241,19 @@ def episode_number(value):
     return str(value)
 
 
+EPISODES_CACHE = {}  # slug -> (time, episodes)
+
+
 def episodes(slug):
+    hit = EPISODES_CACHE.get(slug)
+    if hit and time.time() - hit[0] < 600:
+        return hit[1]
     url = f"{HOST}/api?m=release&id={slug}&sort=episode_asc&page="
     first = pahe_json(url + "1")
     data = list(first.get("data") or [])
     for page in range(2, int(first.get("last_page") or 1) + 1):
         data += pahe_json(url + str(page)).get("data") or []
-    return [{
+    result = [{
         "episode": episode_number(e.get("episode")),
         "title": e.get("title") or "",
         "duration": e.get("duration"),
@@ -255,6 +261,8 @@ def episodes(slug):
         "audio": e.get("audio"),
         "createdAt": e.get("created_at"),
     } for e in data]
+    EPISODES_CACHE[slug] = (time.time(), result)
+    return result
 
 
 def image(url):
@@ -299,11 +307,12 @@ class Jobs:
         self.procs = {}
         threading.Thread(target=self._worker, daemon=True).start()
 
-    def add(self, slug, title, eps, resolution, audio):
+    def add(self, slug, title, eps, resolution, audio, info):
         added = []
         with self.cond:
             for ep in eps:
                 job = {"id": uuid.uuid4().hex[:12], "slug": slug, "title": title, "episode": ep,
+                       "poster": info.get("poster"), "info": info,
                        "resolution": resolution, "audio": audio, "status": "queued",
                        "progress": 0.0, "message": "", "file": None, "createdAt": time.time()}
                 self.jobs.append(job)
@@ -397,7 +406,8 @@ class Jobs:
                 # Folder names are sanitized ("Frieren_ Beyond…"); keep the real title for display.
                 folder = DOWNLOAD_DIR / Path(job["file"]).parent
                 folder.mkdir(parents=True, exist_ok=True)
-                (folder / ".title").write_text(job["title"])
+                meta = {"slug": job["slug"], "title": job["title"], **job["info"]}
+                (folder / ".meta.json").write_text(json.dumps(meta))
                 return
             m = PROGRESS.search(line)
             if m and "[download]" in line:
@@ -421,6 +431,18 @@ def sort_key(path):
         return (1, path.stem)
 
 
+def show_meta(folder):
+    """Title, slug and poster saved when the show was first downloaded."""
+    try:
+        meta = json.loads((folder / ".meta.json").read_text())
+    except (OSError, ValueError):
+        meta = {}
+        if (folder / ".title").exists():  # older downloads
+            meta["title"] = (folder / ".title").read_text().strip()
+    meta.setdefault("title", folder.name)
+    return meta
+
+
 def library():
     if not DOWNLOAD_DIR.exists():
         return []
@@ -430,9 +452,9 @@ def library():
                 "size": f.stat().st_size}
                for f in sorted(d.glob("*.mp4"), key=sort_key)]
         if eps:
-            title_file = d / ".title"
-            title = title_file.read_text().strip() if title_file.exists() else d.name
-            shows.append({"name": d.name, "title": title, "episodes": eps})
+            meta = show_meta(d)
+            meta["episodeCount"] = meta.pop("episodes", None)  # "episodes" below is the file list
+            shows.append({"name": d.name, **meta, "episodes": eps})
     return shows
 
 
@@ -527,7 +549,10 @@ class Handler(BaseHTTPRequestHandler):
             title = str(b.get("title") or "").strip()
             if not title:
                 raise BadRequest("title is required")
-            return self._json(JOBS.add(self._slug(b.get("slug", "")), title, eps, resolution, audio), 201)
+            a = b.get("anime") if isinstance(b.get("anime"), dict) else {}
+            info = {k: a[k] for k in ("poster", "type", "year", "episodes", "status", "score")
+                    if isinstance(a.get(k), (str, int, float))}
+            return self._json(JOBS.add(self._slug(b.get("slug", "")), title, eps, resolution, audio, info), 201)
         if route == ("DELETE", "/api/downloads"):
             if q.get("finished"):
                 JOBS.clear_finished()
