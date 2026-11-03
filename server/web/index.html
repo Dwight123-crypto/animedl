@@ -74,7 +74,7 @@
     background: var(--accent); color: #fff; border: 0; border-radius: 14px; padding: 15px; font-size: 17px;
     font-weight: 600; box-shadow: 0 8px 24px rgba(255,79,139,.35); }
   .cta:disabled { opacity: .6; }
-  .btn { background: var(--card2); border: 0; border-radius: 9px; padding: 7px 12px; font-size: 14px; color: var(--accent); white-space: nowrap; }
+  .btn { text-decoration: none; background: var(--card2); border: 0; border-radius: 9px; padding: 7px 12px; font-size: 14px; color: var(--accent); white-space: nowrap; }
   .btn.danger { color: #ff453a; }
   .btn.full { display: block; width: 100%; padding: 13px; font-size: 16px; text-align: center; border-radius: 12px; margin-bottom: 10px; }
   .actions { display: flex; gap: 6px; flex: none; }
@@ -348,20 +348,20 @@ function renderLibrary(view) {
   if (!S.shows.length) return view.append(el("div", { class: "empty" }, el("b", {}, "No downloads yet"), "Finished episodes on your Mac show up here."));
   view.append(el("div", { class: "list" }, S.shows.map((show) =>
     el("button", { class: "row", onclick: () => push({ name: "show", show: show.name }) },
-      el("div", { class: "grow" }, el("div", { class: "t" }, show.name),
+      el("div", { class: "grow" }, el("div", { class: "t" }, show.title),
         el("div", { class: "s" }, plural(show.episodes.length, "episode") + " · " + bytes(show.episodes.reduce((n, e) => n + e.size, 0)))),
       el("span", { class: "chev" }, "›")))));
 }
 
 function renderShow(view, _action, screen) {
   const show = (S.shows || []).find((s) => s.name === screen.show);
-  setTitle(screen.show);
+  setTitle(show ? show.title : screen.show);
   if (!show) return view.append(el("div", { class: "empty" }, "This show has no downloaded episodes."));
   view.append(el("div", { class: "list" }, show.episodes.map((ep) => el("div", { class: "row" },
     el("div", { class: "grow" }, el("div", {}, "Episode " + ep.episode), el("div", { class: "s" }, bytes(ep.size))),
     el("div", { class: "actions" },
       el("button", { class: "btn", onclick: () => play(fileUrl(ep.path)) }, "▶ Play"),
-      el("a", { class: "btn", href: fileUrl(ep.path, true), download: `${show.name} - ${ep.episode}.mp4` }, "Save"),
+      el("a", { class: "btn", href: fileUrl(ep.path, true), download: `${show.title} - ${ep.episode}.mp4` }, "Save"),
       el("button", { class: "btn danger", onclick: () => deleteEpisode(ep) }, "✕"))))),
     el("p", { class: "note" }, "Save downloads the episode to the Files app for offline viewing. ✕ deletes it from the Mac."));
 }

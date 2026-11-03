@@ -351,6 +351,10 @@ class Jobs:
         with self.cond:
             if line.startswith("@@FILE "):
                 job["file"] = line[len("@@FILE "):]
+                # Folder names are sanitized ("Frieren_ Beyond…"); keep the real title for display.
+                folder = DOWNLOAD_DIR / Path(job["file"]).parent
+                folder.mkdir(parents=True, exist_ok=True)
+                (folder / ".title").write_text(job["title"])
                 return
             m = PROGRESS.search(line)
             if m and "[download]" in line:
@@ -383,7 +387,9 @@ def library():
                 "size": f.stat().st_size}
                for f in sorted(d.glob("*.mp4"), key=sort_key)]
         if eps:
-            shows.append({"name": d.name, "episodes": eps})
+            title_file = d / ".title"
+            title = title_file.read_text().strip() if title_file.exists() else d.name
+            shows.append({"name": d.name, "title": title, "episodes": eps})
     return shows
 
 
