@@ -34,7 +34,7 @@ TOKEN_FILE = ROOT / ".token"
 IMAGE_CACHE = ROOT / ".cache" / "images"
 WEB_DIR = ROOT / "web"
 # The web app's own files are public; everything else needs the token.
-WEB_FILES = {"/": "index.html", "/manifest.webmanifest": "manifest.webmanifest", "/icon.png": "icon.png"}
+WEB_FILES = {"/": "index.html", "/manifest.webmanifest": "manifest.webmanifest", "/icon.png": "icon.png", "/favicon.ico": "icon.png"}
 WEB_TYPES = {".html": "text/html; charset=utf-8", ".webmanifest": "application/manifest+json", ".png": "image/png"}
 DOWNLOAD_DIR = Path(os.environ.get("ANIMEDL_DIR", ROOT / "downloads")).expanduser().resolve()
 PORT = int(os.environ.get("ANIMEDL_PORT", "8765"))
