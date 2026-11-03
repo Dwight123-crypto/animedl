@@ -291,6 +291,32 @@ def image_type(body):
 
 # --- download queue ----------------------------------------------------------
 
+def make_iphone_friendly(path):
+    """animepahe's audio is often HE-AAC v2 whose parametric-stereo signaling is
+    broken, which iPhones play as silence. Re-encode the audio to AAC-LC stereo
+    (the video is copied untouched) and put the index first so streaming starts
+    fast. Returns an error message or None."""
+    probe = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "a:0", "-show_entries",
+                            "stream=profile,channels", "-of", "json", str(path)], capture_output=True, text=True)
+    try:
+        audio_info = json.loads(probe.stdout)["streams"][0]
+    except (ValueError, KeyError, IndexError):
+        audio_info = {}
+    if audio_info.get("profile") == "LC" and audio_info.get("channels") == 2:
+        audio = ["-c:a", "copy"]
+    else:
+        audio = ["-c:a", "aac", "-b:a", "160k", "-ac", "2"]
+    tmp = path.with_name(path.stem + ".converting")
+    r = subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(path), "-map", "0:v:0", "-map", "0:a:0?",
+                        "-c:v", "copy", *audio, "-movflags", "+faststart", "-f", "mp4", str(tmp)],
+                       capture_output=True, text=True)
+    if r.returncode != 0:
+        tmp.unlink(missing_ok=True)
+        return "Fixing audio failed: " + (r.stderr.strip().splitlines() or ["ffmpeg error"])[-1]
+    tmp.replace(path)
+    return None
+
+
 def stop(proc):
     try:
         os.killpg(proc.pid, signal.SIGTERM)  # bash, curl and yt-dlp together
@@ -385,16 +411,21 @@ class Jobs:
                 self._line(job, raw, tail)
         self._line(job, buf, tail)
         code = proc.wait()
-
         with self.cond:
             self.procs.pop(job["id"], None)
+            ok = code == 0 and job["file"] and (DOWNLOAD_DIR / job["file"]).is_file()
+            if ok and job["status"] != "cancelled":
+                job.update(progress=100.0, message="Preparing audio for iPhone…")
+
+        err = make_iphone_friendly(DOWNLOAD_DIR / job["file"]) if ok else None
+        with self.cond:
             if job["status"] == "cancelled":
                 return
-            if code == 0 and job["file"] and (DOWNLOAD_DIR / job["file"]).is_file():
+            if ok and not err:
                 job.update(status="done", progress=100.0, message="")
             else:
                 job["status"] = "failed"
-                job["message"] = tail[-1] if tail else f"exited with code {code}"
+                job["message"] = err or (tail[-1] if tail else f"exited with code {code}")
 
     def _line(self, job, raw, tail):
         line = ANSI.sub("", raw.decode(errors="replace")).strip()
