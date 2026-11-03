@@ -121,6 +121,38 @@ def refresh_from_chrome():
 
 REVIVE_LOCK = threading.Lock()
 
+# Reload an animepahe tab that's already open in Chrome, so renewals don't pile up tabs.
+RELOAD_TAB = """
+tell application "Google Chrome"
+    repeat with w in windows
+        repeat with t in tabs of w
+            if URL of t contains "animepahe" then
+                reload t
+                return "reloaded"
+            end if
+        end repeat
+    end repeat
+end tell
+return "none"
+"""
+
+
+def reload_or_open_in_chrome():
+    r = subprocess.run(["osascript", "-e", RELOAD_TAB], capture_output=True, text=True)
+    if r.stdout.strip() != "reloaded":  # no tab yet, or Automation access denied
+        subprocess.run(["open", "-g", "-a", "Google Chrome", HOST], capture_output=True)
+
+
+def keep_cookie_fresh():
+    """Clearances last roughly 15-30 minutes. Check every 10 and renew early so
+    nobody waits ~30s for a renewal in the middle of a search."""
+    while True:
+        time.sleep(600)
+        try:
+            pahe_json(f"{HOST}/api?m=search&q=one")  # repairs the cookie if it's stale
+        except Exception as e:
+            print(f"Cookie keep-alive failed: {e}")
+
 
 def revive_in_chrome():
     """Cloudflare clearances go stale long before the cookie expires. Opening
@@ -131,7 +163,7 @@ def revive_in_chrome():
         old = load_config()["cf"]
         if refresh_from_chrome() is None and load_config()["cf"] != old:
             return True  # another request already revived it
-        subprocess.run(["open", "-g", "-a", "Google Chrome", HOST], capture_output=True)
+        reload_or_open_in_chrome()
         deadline = time.time() + 45
         while time.time() < deadline:
             time.sleep(4)
@@ -178,9 +210,18 @@ def pahe_json(url):
                     "Mac, pass the check if it shows one, then try again.")
 
 
+SEARCH_CACHE = {}  # lowercased query -> (time, results); search-as-you-type repeats a lot
+
+
 def search(query):
+    key = query.lower()
+    hit = SEARCH_CACHE.get(key)
+    if hit and time.time() - hit[0] < 600:
+        return hit[1]
+    if len(SEARCH_CACHE) > 500:
+        SEARCH_CACHE.clear()
     d = pahe_json(f"{HOST}/api?m=search&q={urllib.parse.quote(query)}")
-    return [{
+    results = [{
         "slug": a.get("session"),
         "title": a.get("title") or "",
         "type": a.get("type"),
@@ -190,6 +231,8 @@ def search(query):
         "score": a.get("score"),
         "poster": a.get("poster"),
     } for a in d.get("data") or [] if a.get("session")]
+    SEARCH_CACHE[key] = (time.time(), results)
+    return results
 
 
 def episode_number(value):
@@ -608,6 +651,7 @@ def main():
         print("  WARNING: missing tools: " + ", ".join(s["missing"]))
     if not s["configured"]:
         print("  WARNING: no Cloudflare cookie yet. Open https://animepahe.pw in Chrome; the server picks it up automatically.")
+    threading.Thread(target=keep_cookie_fresh, daemon=True).start()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     server.daemon_threads = True
     try:

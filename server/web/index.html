@@ -165,9 +165,9 @@ function toast(msg) {
   clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
 }
 
-async function api(method, path, body) {
+async function api(method, path, body, signal) {
   const r = await fetch(path, {
-    method,
+    method, signal,
     headers: { Authorization: "Bearer " + S.token, ...(body ? { "Content-Type": "application/json" } : {}) },
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -219,18 +219,53 @@ function renderLogin(view) {
 }
 
 // ---- search ----------------------------------------------------------------
+let searchTimer, searchAbort;
+const recents = () => JSON.parse(localStorage.getItem("recents") || "[]");
+function addRecent(title) {
+  localStorage.setItem("recents", JSON.stringify([title, ...recents().filter((t) => t !== title)].slice(0, 8)));
+}
+
 function renderSearch(view) {
   setTitle("Search");
-  const input = el("input", { type: "search", placeholder: "Anime title", value: S.search.q, enterkeyhint: "search", autocapitalize: "off", autocorrect: "off" });
-  const form = el("form", { class: "search", onsubmit: (e) => { e.preventDefault(); input.blur(); doSearch(input.value); } }, input);
-  view.append(form);
+  const input = el("input", { type: "search", placeholder: "Anime title", value: S.search.q, enterkeyhint: "search",
+    autocapitalize: "off", autocorrect: "off", autocomplete: "off", oninput: (e) => onType(e.target.value) });
+  const form = el("form", { class: "search", onsubmit: (e) => {
+    e.preventDefault(); input.blur(); clearTimeout(searchTimer); doSearch(input.value);
+  } }, input);
+  view.append(form, el("div", { id: "results" }));
+  renderResults();
+}
+
+// Results update as you type, after a short pause, from 2 letters on.
+function onType(value) {
+  S.search.q = value;
+  clearTimeout(searchTimer);
+  if (value.trim().length < 2) {
+    if (searchAbort) searchAbort.abort();
+    Object.assign(S.search, { results: [], loading: false, error: "", searched: false });
+    return renderResults();
+  }
+  searchTimer = setTimeout(() => doSearch(value), 300);
+}
+
+// Only redraws the results, so the search box keeps focus while typing.
+function renderResults() {
+  const box = $("results");
+  if (!box) return;
+  box.replaceChildren();
   const s = S.search;
-  if (s.loading) return view.append(el("div", { class: "spinner" }));
-  if (s.error) return view.append(el("div", { class: "empty" }, el("b", {}, "Search failed"), el("span", { class: "error" }, s.error)));
-  if (!s.results.length) return view.append(el("div", { class: "empty" },
-    el("b", {}, s.searched ? "No results" : "Search animepahe"), s.searched ? "Try a different title." : "Type a title and press Search."));
-  view.append(el("div", { class: "list" }, s.results.map((a) =>
-    el("button", { class: "row", onclick: () => openAnime(a) },
+  if (s.loading && !s.results.length) return box.append(el("div", { class: "spinner" }));
+  if (s.error) return box.append(el("div", { class: "empty" }, el("b", {}, "Search failed"), el("span", { class: "error" }, s.error)));
+  if (!s.results.length) {
+    if (s.searched) return box.append(el("div", { class: "empty" }, el("b", {}, "No results"), "Try a different title."));
+    const recent = recents();
+    if (!recent.length) return box.append(el("div", { class: "empty" }, el("b", {}, "Search animepahe"), "Start typing a title."));
+    return box.append(el("div", { class: "section" }, "Recent"), el("div", { class: "list" }, recent.map((t) =>
+      el("button", { class: "row", onclick: () => { document.querySelector(".search input").value = t; S.search.q = t; doSearch(t); } },
+        el("div", { class: "grow" }, t), el("span", { class: "chev" }, "↖")))));
+  }
+  box.append(el("div", { class: "list", style: s.loading ? "opacity:.55" : "" }, s.results.map((a) =>
+    el("button", { class: "row", onclick: () => { addRecent(a.title); openAnime(a); } },
       el("img", { class: "poster", src: imageUrl(a.poster), loading: "lazy", alt: "" }),
       el("div", { class: "grow" }, el("div", { class: "t" }, a.title), el("div", { class: "s" }, subtitle(a))),
       el("span", { class: "chev" }, "›")))));
@@ -239,10 +274,18 @@ const subtitle = (a) => [a.type, a.year, a.episodes ? a.episodes + " eps" : null
 
 async function doSearch(q) {
   q = q.trim(); if (!q) return;
-  Object.assign(S.search, { q, loading: true, error: "" }); render();
-  try { S.search.results = await api("GET", "/api/search?q=" + encodeURIComponent(q)); }
-  catch (e) { S.search.results = []; S.search.error = e.message; }
-  Object.assign(S.search, { loading: false, searched: true }); render();
+  if (searchAbort) searchAbort.abort();
+  const ctrl = searchAbort = new AbortController();
+  Object.assign(S.search, { loading: true, error: "" }); renderResults();
+  try {
+    const results = await api("GET", "/api/search?q=" + encodeURIComponent(q), null, ctrl.signal);
+    Object.assign(S.search, { results, searched: true });
+  } catch (e) {
+    if (ctrl !== searchAbort) return;  // a newer search replaced this one
+    Object.assign(S.search, { results: [], error: e.message });
+  }
+  if (ctrl !== searchAbort) return;
+  S.search.loading = false; renderResults();
 }
 
 // ---- episodes --------------------------------------------------------------
