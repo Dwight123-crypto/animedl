@@ -543,9 +543,8 @@ class Handler(BaseHTTPRequestHandler):
             path.unlink()
             return self._json({"ok": True})
         if route == ("POST", "/api/config/refresh"):
-            if not revive_in_chrome():
-                raise PaheError(refresh_from_chrome() or "Chrome didn't get a new cookie. Open "
-                                "https://animepahe.pw in Chrome and pass the check.")
+            refresh_from_chrome()
+            pahe_json(f"{HOST}/api?m=search&q=one")  # renews via Chrome if blocked; raises if it can't
             return self._json(status())
         if route == ("PUT", "/api/config"):
             b = self._body()
