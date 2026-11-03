@@ -32,6 +32,10 @@ JOB_SCRIPT = ROOT / "pahe-job.sh"
 CONFIG_FILE = ROOT / "config.json"  # {"cf": ..., "ua": ...}, read by animepahe-dl.sh too
 TOKEN_FILE = ROOT / ".token"
 IMAGE_CACHE = ROOT / ".cache" / "images"
+WEB_DIR = ROOT / "web"
+# The web app's own files are public; everything else needs the token.
+WEB_FILES = {"/": "index.html", "/manifest.webmanifest": "manifest.webmanifest", "/icon.png": "icon.png"}
+WEB_TYPES = {".html": "text/html; charset=utf-8", ".webmanifest": "application/manifest+json", ".png": "image/png"}
 DOWNLOAD_DIR = Path(os.environ.get("ANIMEDL_DIR", ROOT / "downloads")).expanduser().resolve()
 PORT = int(os.environ.get("ANIMEDL_PORT", "8765"))
 
@@ -115,6 +119,27 @@ def refresh_from_chrome():
     return None
 
 
+REVIVE_LOCK = threading.Lock()
+
+
+def revive_in_chrome():
+    """Cloudflare clearances go stale long before the cookie expires. Opening
+    animepahe in Chrome (in the background) makes Cloudflare issue a new one,
+    usually within seconds and without any clicking. Returns True if a new
+    cookie showed up."""
+    with REVIVE_LOCK:
+        old = load_config()["cf"]
+        if refresh_from_chrome() is None and load_config()["cf"] != old:
+            return True  # another request already revived it
+        subprocess.run(["open", "-g", "-a", "Google Chrome", HOST], capture_output=True)
+        deadline = time.time() + 45
+        while time.time() < deadline:
+            time.sleep(4)
+            if refresh_from_chrome() is None and load_config()["cf"] != old:
+                return True
+        return False
+
+
 def pahe_get(url):
     cfg = load_config()
     if not cfg["cf"] or not cfg["ua"]:
@@ -141,13 +166,16 @@ def pahe_json(url):
         return json.loads(pahe_get(url))
     except ValueError:
         pass
-    # Probably a Cloudflare challenge: grab a fresh cookie from Chrome and retry once.
-    err = refresh_from_chrome()
-    try:
-        return json.loads(pahe_get(url))
-    except ValueError:
-        raise PaheError("Cloudflare blocked the request. Open https://animepahe.pw in Chrome on the "
-                        "Mac, pass the check, then try again." + (f" ({err})" if err else ""))
+    # Probably a Cloudflare challenge: first re-read Chrome's cookie, then have
+    # Chrome revisit the site for a fresh one.
+    for fix in (refresh_from_chrome, revive_in_chrome):
+        fix()
+        try:
+            return json.loads(pahe_get(url))
+        except ValueError:
+            pass
+    raise PaheError("Cloudflare blocked the request. Open https://animepahe.pw in Chrome on the "
+                    "Mac, pass the check if it shows one, then try again.")
 
 
 def search(query):
@@ -280,7 +308,14 @@ class Jobs:
                     job["message"] = str(e)
 
     def _run(self, job):
-        refresh_from_chrome()  # cookie may have rotated since the last request
+        # Make sure the Cloudflare cookie still works (pahe_json repairs it if
+        # not) before animepahe-dl.sh, which can't, starts using it.
+        try:
+            pahe_json(f"{HOST}/api?m=release&id={job['slug']}&sort=episode_asc&page=1")
+        except PaheError as e:
+            with self.cond:
+                job.update(status="failed", message=str(e))
+            return
         env = dict(os.environ, PAHE_SCRIPT=str(PAHE_SCRIPT), PAHE_DOWNLOAD_DIR=str(DOWNLOAD_DIR))
         proc = subprocess.Popen(
             ["bash", str(JOB_SCRIPT), job["slug"], job["title"], job["episode"],
@@ -398,6 +433,9 @@ class Handler(BaseHTTPRequestHandler):
         url = urllib.parse.urlsplit(self.path)
         query = {k: v[-1] for k, v in urllib.parse.parse_qs(url.query).items()}
         try:
+            if url.path in WEB_FILES and self.command in ("GET", "HEAD"):
+                f = WEB_DIR / WEB_FILES[url.path]
+                return self._send(200, f.read_bytes(), WEB_TYPES[f.suffix], {"Cache-Control": "no-cache"})
             if not self._authorized(query):
                 return self._json({"error": "Wrong or missing token."}, 401)
             self._route(self.command, url.path, query)
@@ -415,7 +453,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _route(self, method, path, q):
         if path.startswith("/files/") and method in ("GET", "HEAD"):
-            return self._file(library_path(urllib.parse.unquote(path[len("/files/"):])))
+            return self._file(library_path(urllib.parse.unquote(path[len("/files/"):])), bool(q.get("dl")))
         route = (method, path)
         if route == ("GET", "/api/status"):
             return self._json(status())
@@ -456,9 +494,9 @@ class Handler(BaseHTTPRequestHandler):
             path.unlink()
             return self._json({"ok": True})
         if route == ("POST", "/api/config/refresh"):
-            err = refresh_from_chrome()
-            if err:
-                raise PaheError(err)
+            if not revive_in_chrome():
+                raise PaheError(refresh_from_chrome() or "Chrome didn't get a new cookie. Open "
+                                "https://animepahe.pw in Chrome and pass the check.")
             return self._json(status())
         if route == ("PUT", "/api/config"):
             b = self._body()
@@ -497,7 +535,7 @@ class Handler(BaseHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(body)
 
-    def _file(self, path):
+    def _file(self, path, attachment=False):
         if path.suffix != ".mp4" or not path.is_file():
             return self._json({"error": "not found"}, 404)
         size = path.stat().st_size
@@ -519,6 +557,9 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", "video/mp4")
         self.send_header("Accept-Ranges", "bytes")
+        if attachment:  # "Save" in the web app: download to the Files app instead of playing
+            name = f"{path.parent.name} - {path.stem}.mp4"
+            self.send_header("Content-Disposition", "attachment; filename*=UTF-8''" + urllib.parse.quote(name))
         self.send_header("Content-Length", str(end - start + 1))
         if code == 206:
             self.send_header("Content-Range", f"bytes {start}-{end}/{size}")
@@ -553,7 +594,9 @@ def main():
     err = refresh_from_chrome()
     print(f"  {err}" if err else "  Got it.")
     s = status()
-    print(f"AnimeDL server\n  URL:       http://{lan_ip()}:{PORT}\n  Token:     {TOKEN}\n"
+    url = f"http://{lan_ip()}:{PORT}"
+    print(f"AnimeDL server\n  URL:       {url}\n  Token:     {TOKEN}\n"
+          f"  Phone:     open {url}/#token={TOKEN} in Safari, then Share → Add to Home Screen\n"
           f"  Downloads: {DOWNLOAD_DIR}")
     if s["missing"]:
         print("  WARNING: missing tools: " + ", ".join(s["missing"]))

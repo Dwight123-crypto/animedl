@@ -37,7 +37,21 @@ It prints the **URL** and **token** to enter in the app. It keeps the Mac awake 
 - Visit https://animepahe.pw in Chrome on the Mac at least once.
 - If searches still fail, open the site in Chrome again, pass the check, then tap **Settings → Refresh from Chrome** in the app.
 
-## 2. iPhone app
+## 2. On the iPhone: web app (no cable, no Xcode)
+
+The server also serves the app as a web page (`server/web/`).
+1. Start the server. It prints a **Phone** link like `http://192.168.1.6:8765/#token=…`.
+2. Open that link in **Safari** on your iPhone, on the same Wi-Fi as the Mac.
+3. Tap **Share → Add to Home Screen**. AnimeDL then opens full-screen from its own icon.
+   Home Screen apps don't share storage with Safari, so the first time you open it from the icon, paste the token once.
+
+The web app has Search, Queue, Library and Settings, like the native app.
+- **Play** streams an episode from the Mac.
+- **Save** downloads it to the Files app for offline viewing.
+
+If Cloudflare blocks a request, the server reopens animepahe in Chrome in the background, picks up the fresh cookie and retries. This happens automatically.
+
+## 3. iPhone app (native, optional)
 
 1. Install **Xcode** from the Mac App Store. Open it once so it installs the iOS components.
 2. Generate the project:

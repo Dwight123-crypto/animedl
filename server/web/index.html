@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="AnimeDL">
+<meta name="theme-color" content="#0d0d12">
+<link rel="apple-touch-icon" href="/icon.png">
+<link rel="manifest" href="/manifest.webmanifest">
+<title>AnimeDL</title>
+<style>
+  :root {
+    --bg: #0d0d12; --card: #17171f; --card2: #20202b; --line: #2a2a36;
+    --text: #f2f2f7; --dim: #9a9aab; --accent: #ff4f8b; --ok: #34c759; --warn: #ff9f0a;
+    --top: env(safe-area-inset-top); --bottom: env(safe-area-inset-bottom);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.35 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif; }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+
+  header { position: sticky; top: 0; z-index: 5; padding: calc(var(--top) + 10px) 16px 10px;
+    background: rgba(13,13,18,.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    display: flex; align-items: center; gap: 8px; min-height: 52px; }
+  header h1 { flex: 1; margin: 0; font-size: 22px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .link { background: none; border: 0; color: var(--accent); padding: 6px 0; font-size: 16px; }
+  .link:disabled { opacity: .4; }
+
+  main { padding: 4px 16px calc(var(--bottom) + 140px); }
+
+  nav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: flex;
+    padding: 6px 0 calc(var(--bottom) + 4px); background: rgba(23,23,31,.92);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid var(--line); }
+  nav button { flex: 1; background: none; border: 0; color: var(--dim); font-size: 11px;
+    display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 4px 0; }
+  nav button svg { width: 24px; height: 24px; }
+  nav button.on { color: var(--accent); }
+
+  .search { display: flex; gap: 8px; margin: 4px 0 14px; }
+  .search input { flex: 1; min-width: 0; background: var(--card2); border: 0; border-radius: 10px;
+    padding: 10px 12px; font-size: 17px; outline: none; -webkit-appearance: none; }
+
+  .list { background: var(--card); border-radius: 12px; overflow: hidden; margin-bottom: 18px; }
+  .row { display: flex; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid var(--line);
+    width: 100%; text-align: left; background: none; border-left: 0; border-right: 0; border-top: 0; }
+  .row:last-child { border-bottom: 0; }
+  .row .grow { flex: 1; min-width: 0; }
+  .row .t { font-weight: 600; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+  .row .s { color: var(--dim); font-size: 13px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .poster { width: 48px; height: 68px; border-radius: 6px; object-fit: cover; background: var(--card2); flex: none; }
+  .chev { color: var(--dim); flex: none; }
+
+  .section { color: var(--dim); font-size: 13px; text-transform: uppercase; letter-spacing: .03em; margin: 18px 4px 6px; }
+  .hero { display: flex; gap: 14px; margin: 6px 0 14px; }
+  .hero img { width: 92px; height: 130px; border-radius: 10px; object-fit: cover; background: var(--card2); }
+  .hero .t { font-size: 19px; font-weight: 700; }
+  .hero .s { color: var(--dim); font-size: 14px; margin-top: 4px; }
+
+  .field { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; border-bottom: 1px solid var(--line); gap: 10px; }
+  .field:last-child { border-bottom: 0; }
+  .field select { background: none; border: 0; color: var(--dim); text-align: right; -webkit-appearance: none; direction: rtl; }
+  .field input { flex: 1; min-width: 0; background: none; border: 0; outline: none; text-align: right; color: var(--dim); }
+
+  .check { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--dim); flex: none;
+    display: grid; place-items: center; }
+  .check.on { background: var(--accent); border-color: var(--accent); }
+  .check.on::after { content: ""; width: 6px; height: 11px; border: solid #fff; border-width: 0 2.5px 2.5px 0; transform: translateY(-1px) rotate(45deg); }
+
+  .cta { position: fixed; left: 16px; right: 16px; bottom: calc(var(--bottom) + 66px); z-index: 4;
+    background: var(--accent); color: #fff; border: 0; border-radius: 14px; padding: 15px; font-size: 17px;
+    font-weight: 600; box-shadow: 0 8px 24px rgba(255,79,139,.35); }
+  .cta:disabled { opacity: .6; }
+  .btn { background: var(--card2); border: 0; border-radius: 9px; padding: 7px 12px; font-size: 14px; color: var(--accent); white-space: nowrap; }
+  .btn.danger { color: #ff453a; }
+  .btn.full { display: block; width: 100%; padding: 13px; font-size: 16px; text-align: center; border-radius: 12px; margin-bottom: 10px; }
+  .actions { display: flex; gap: 6px; flex: none; }
+
+  .bar { height: 4px; background: var(--card2); border-radius: 2px; margin-top: 7px; overflow: hidden; }
+  .bar > div { height: 100%; background: var(--accent); transition: width .5s; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--dim); }
+  .dot.downloading { background: var(--accent); } .dot.done { background: var(--ok); } .dot.failed { background: var(--warn); }
+
+  .empty { text-align: center; color: var(--dim); padding: 60px 24px; }
+  .empty b { display: block; color: var(--text); font-size: 18px; margin-bottom: 6px; }
+  .error { color: var(--warn); }
+  .note { color: var(--dim); font-size: 13px; margin: 6px 4px 18px; }
+  .spinner { width: 28px; height: 28px; margin: 60px auto; border: 3px solid var(--card2); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin .8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  #player { position: fixed; inset: 0; z-index: 20; background: #000; display: flex; align-items: center; justify-content: center; }
+  #player video { width: 100%; max-height: 100%; }
+  #player button { position: absolute; top: calc(var(--top) + 10px); left: 14px; background: rgba(255,255,255,.18);
+    border: 0; color: #fff; border-radius: 18px; padding: 7px 14px; font-weight: 600; }
+  #toast { position: fixed; left: 50%; bottom: calc(var(--bottom) + 130px); transform: translateX(-50%); z-index: 30;
+    background: rgba(40,40,52,.96); padding: 10px 16px; border-radius: 12px; font-size: 14px; max-width: 88%;
+    text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s; }
+  #toast.show { opacity: 1; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<header>
+  <button class="link" id="back" hidden>‹ Back</button>
+  <h1 id="title">Search</h1>
+  <span id="action"></span>
+</header>
+<main id="view"></main>
+<nav id="tabs">
+  <button data-tab="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Search</button>
+  <button data-tab="queue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v9m-4-4 4 4 4-4"/></svg>Queue</button>
+  <button data-tab="library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z" fill="currentColor"/></svg>Library</button>
+  <button data-tab="settings"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Settings</button>
+</nav>
+<div id="player" hidden><video controls playsinline></video><button id="closePlayer">Done</button></div>
+<div id="toast"></div>
+
+<script>
+"use strict";
+
+// ---- state -----------------------------------------------------------------
+const S = {
+  token: localStorage.getItem("token") || "",
+  tab: "search",
+  stack: { search: [{ name: "search" }], queue: [{ name: "queue" }], library: [{ name: "library" }], settings: [{ name: "settings" }] },
+  search: { q: "", results: [], loading: false, error: "", searched: false },
+  eps: null,          // { anime, list, selected:Set, loading, error, queueing }
+  jobs: [], jobsError: "",
+  shows: null, showsError: "",
+  status: null, statusError: "", refreshing: false,
+};
+const prefs = { res: localStorage.getItem("res") || "", audio: localStorage.getItem("audio") || "" };
+
+// A link like http://mac:8765/#token=abc signs this device in.
+const hashToken = new URLSearchParams(location.hash.slice(1)).get("token");
+if (hashToken) { S.token = hashToken; localStorage.setItem("token", hashToken); history.replaceState(null, "", "/"); }
+
+// ---- helpers ---------------------------------------------------------------
+const $ = (id) => document.getElementById(id);
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k.startsWith("on")) e.addEventListener(k.slice(2), v);
+    else if (k === "class") e.className = v;
+    else if (k === "style") e.style.cssText = v;
+    else e.setAttribute(k, v === true ? "" : v);
+  }
+  for (const k of kids.flat()) if (k != null && k !== false) e.append(k instanceof Node ? k : String(k));
+  return e;
+}
+const withToken = (u) => u + (u.includes("?") ? "&" : "?") + "token=" + encodeURIComponent(S.token);
+const imageUrl = (remote) => remote ? withToken("/api/image?url=" + encodeURIComponent(remote)) : "";
+const fileUrl = (path, download) => withToken("/files/" + path.split("/").map(encodeURIComponent).join("/") + (download ? "?dl=1" : ""));
+const bytes = (n) => n > 1e9 ? (n / 1e9).toFixed(2) + " GB" : Math.round(n / 1e6) + " MB";
+const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
+
+let toastTimer;
+function toast(msg) {
+  const t = $("toast"); t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+async function api(method, path, body) {
+  const r = await fetch(path, {
+    method,
+    headers: { Authorization: "Bearer " + S.token, ...(body ? { "Content-Type": "application/json" } : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const data = await r.json().catch(() => ({}));
+  if (r.status === 401) { S.token = ""; localStorage.removeItem("token"); render(); throw new Error("Wrong token"); }
+  if (!r.ok) throw new Error(data.error || "Server returned HTTP " + r.status);
+  return data;
+}
+
+// ---- navigation ------------------------------------------------------------
+const top_ = () => S.stack[S.tab][S.stack[S.tab].length - 1];
+function push(screen) { S.stack[S.tab].push(screen); render(); window.scrollTo(0, 0); }
+function pop() { S.stack[S.tab].pop(); render(); }
+function switchTab(tab) {
+  if (S.tab === tab && S.stack[tab].length > 1) S.stack[tab] = S.stack[tab].slice(0, 1);  // tap again = back to root
+  S.tab = tab; render(); window.scrollTo(0, 0);
+  if (tab === "queue") loadJobs();
+  if (tab === "library") loadShows();
+  if (tab === "settings") loadStatus();
+}
+document.querySelectorAll("#tabs button").forEach((b) => b.addEventListener("click", () => switchTab(b.dataset.tab)));
+$("back").addEventListener("click", pop);
+
+function render() {
+  const view = $("view"), action = $("action");
+  view.replaceChildren(); action.replaceChildren();
+  document.querySelectorAll("#tabs button").forEach((b) => b.classList.toggle("on", b.dataset.tab === S.tab));
+  $("tabs").hidden = !S.token;
+  if (!S.token) return renderLogin(view);
+  const screen = top_();
+  $("back").hidden = S.stack[S.tab].length < 2;
+  const screens = { search: renderSearch, episodes: renderEpisodes, queue: renderQueue, library: renderLibrary, show: renderShow, settings: renderSettings };
+  screens[screen.name](view, action, screen);
+}
+const setTitle = (t) => { $("title").textContent = t; };
+
+// ---- login -----------------------------------------------------------------
+function renderLogin(view) {
+  setTitle("AnimeDL"); $("back").hidden = true;
+  const input = el("input", { type: "password", placeholder: "Token", autocomplete: "off", autocapitalize: "off" });
+  view.append(
+    el("p", { class: "note" }, "Enter the token printed by server.py on your Mac (or run: cat server/.token)."),
+    el("div", { class: "list" }, el("div", { class: "field" }, el("span", {}, "Token"), input)),
+    el("button", { class: "btn full", onclick: () => {
+      const t = input.value.trim(); if (!t) return;
+      S.token = t; localStorage.setItem("token", t); render(); loadStatus();
+    } }, "Sign In"),
+  );
+}
+
+// ---- search ----------------------------------------------------------------
+function renderSearch(view) {
+  setTitle("Search");
+  const input = el("input", { type: "search", placeholder: "Anime title", value: S.search.q, enterkeyhint: "search", autocapitalize: "off", autocorrect: "off" });
+  const form = el("form", { class: "search", onsubmit: (e) => { e.preventDefault(); input.blur(); doSearch(input.value); } }, input);
+  view.append(form);
+  const s = S.search;
+  if (s.loading) return view.append(el("div", { class: "spinner" }));
+  if (s.error) return view.append(el("div", { class: "empty" }, el("b", {}, "Search failed"), el("span", { class: "error" }, s.error)));
+  if (!s.results.length) return view.append(el("div", { class: "empty" },
+    el("b", {}, s.searched ? "No results" : "Search animepahe"), s.searched ? "Try a different title." : "Type a title and press Search."));
+  view.append(el("div", { class: "list" }, s.results.map((a) =>
+    el("button", { class: "row", onclick: () => openAnime(a) },
+      el("img", { class: "poster", src: imageUrl(a.poster), loading: "lazy", alt: "" }),
+      el("div", { class: "grow" }, el("div", { class: "t" }, a.title), el("div", { class: "s" }, subtitle(a))),
+      el("span", { class: "chev" }, "›")))));
+}
+const subtitle = (a) => [a.type, a.year, a.episodes ? a.episodes + " eps" : null, a.status].filter(Boolean).join(" · ");
+
+async function doSearch(q) {
+  q = q.trim(); if (!q) return;
+  Object.assign(S.search, { q, loading: true, error: "" }); render();
+  try { S.search.results = await api("GET", "/api/search?q=" + encodeURIComponent(q)); }
+  catch (e) { S.search.results = []; S.search.error = e.message; }
+  Object.assign(S.search, { loading: false, searched: true }); render();
+}
+
+// ---- episodes --------------------------------------------------------------
+async function openAnime(anime) {
+  S.eps = { anime, list: [], selected: new Set(), loading: true, error: "", queueing: false };
+  push({ name: "episodes" });
+  try { S.eps.list = await api("GET", "/api/episodes?slug=" + encodeURIComponent(anime.slug)); }
+  catch (e) { S.eps.error = e.message; }
+  S.eps.loading = false;
+  if (top_().name === "episodes") render();
+}
+
+function renderEpisodes(view, action) {
+  const E = S.eps, a = E.anime;
+  setTitle(a.title);
+  const all = E.list.length > 0 && E.selected.size === E.list.length;
+  action.append(el("button", { class: "link", disabled: !E.list.length, onclick: () => {
+    E.selected = all ? new Set() : new Set(E.list.map((e) => e.episode)); render();
+  } }, all ? "None" : "All"));
+
+  view.append(el("div", { class: "hero" },
+    el("img", { src: imageUrl(a.poster), alt: "" }),
+    el("div", {}, el("div", { class: "t" }, a.title), el("div", { class: "s" }, subtitle(a)))));
+
+  const select = (key, options) => el("select", { onchange: (e) => { prefs[key] = e.target.value; localStorage.setItem(key, e.target.value); } },
+    options.map(([v, label]) => el("option", { value: v, selected: prefs[key] === v }, label)));
+  view.append(
+    el("div", { class: "list" },
+      el("div", { class: "field" }, el("span", {}, "Resolution"), select("res", [["", "Default (1080p)"], ["1080", "1080p"], ["720", "720p"], ["360", "360p"]])),
+      el("div", { class: "field" }, el("span", {}, "Audio"), select("audio", [["", "Default"], ["jpn", "Japanese"], ["eng", "English"]]))),
+    el("p", { class: "note" }, "If a choice isn't available, the downloader falls back to 1080p."));
+
+  if (E.loading) return view.append(el("div", { class: "spinner" }));
+  if (E.error) return view.append(el("div", { class: "empty" }, el("b", {}, "Couldn't load episodes"), el("span", { class: "error" }, E.error)));
+
+  view.append(el("div", { class: "section" }, plural(E.list.length, "episode")),
+    el("div", { class: "list" }, E.list.map((ep) => {
+      const on = E.selected.has(ep.episode);
+      const details = [ep.title, ep.duration, ep.audio].filter(Boolean).join(" · ");
+      return el("button", { class: "row", onclick: () => { on ? E.selected.delete(ep.episode) : E.selected.add(ep.episode); render(); } },
+        el("span", { class: "check" + (on ? " on" : "") }),
+        el("div", { class: "grow" }, el("div", {}, "Episode " + ep.episode), details && el("div", { class: "s" }, details)));
+    })));
+
+  if (E.selected.size) view.append(el("button", { class: "cta", disabled: E.queueing, onclick: queueSelected },
+    E.queueing ? "Queueing…" : "Download " + plural(E.selected.size, "episode")));
+}
+
+async function queueSelected() {
+  const E = S.eps; E.queueing = true; render();
+  const episodes = E.list.map((e) => e.episode).filter((n) => E.selected.has(n));  // keep episode order
+  try {
+    await api("POST", "/api/downloads", { slug: E.anime.slug, title: E.anime.title, episodes, resolution: prefs.res, audio: prefs.audio });
+    E.selected = new Set();
+    toast(`Queued ${plural(episodes.length, "episode")} — see the Queue tab`);
+  } catch (e) { toast(e.message); }
+  E.queueing = false; render();
+}
+
+// ---- queue -----------------------------------------------------------------
+async function loadJobs() {
+  try { S.jobs = (await api("GET", "/api/downloads")).reverse(); S.jobsError = ""; }
+  catch (e) { S.jobsError = e.message; }
+  if (S.tab === "queue" && S.token) render();
+}
+setInterval(() => { if (S.tab === "queue" && S.token && !document.hidden) loadJobs(); }, 2000);
+
+function renderQueue(view, action) {
+  setTitle("Queue");
+  action.append(el("button", { class: "link", disabled: !S.jobs.some((j) => !active(j)),
+    onclick: () => jobAction(() => api("DELETE", "/api/downloads?finished=1")) }, "Clear"));
+  if (S.jobsError) return view.append(el("div", { class: "empty" }, el("b", {}, "Can't reach the server"), el("span", { class: "error" }, S.jobsError)));
+  if (!S.jobs.length) return view.append(el("div", { class: "empty" }, el("b", {}, "Nothing queued"), "Pick episodes in Search to download them on your Mac."));
+  view.append(el("div", { class: "list" }, S.jobs.map((j) => el("div", { class: "row" },
+    el("span", { class: "dot " + j.status }),
+    el("div", { class: "grow" },
+      el("div", { class: "t" }, `${j.title} · Ep ${j.episode}`),
+      el("div", { class: "s" + (j.status === "failed" ? " error" : "") }, j.message || cap(j.status)),
+      j.status === "downloading" && el("div", { class: "bar" }, el("div", { style: `width:${j.progress}%` }))),
+    el("div", { class: "actions" },
+      (j.status === "failed" || j.status === "cancelled") && el("button", { class: "btn", onclick: () => jobAction(() => retry(j)) }, "Retry"),
+      el("button", { class: "btn danger", onclick: () => jobAction(() => api("DELETE", "/api/downloads?id=" + j.id)) }, active(j) ? "Cancel" : "✕"))))));
+}
+const active = (j) => j.status === "queued" || j.status === "downloading";
+const cap = (s) => s[0].toUpperCase() + s.slice(1);
+async function retry(j) {
+  await api("POST", "/api/downloads", { slug: j.slug, title: j.title, episodes: [j.episode], resolution: j.resolution, audio: j.audio });
+  await api("DELETE", "/api/downloads?id=" + j.id);
+}
+async function jobAction(fn) { try { await fn(); } catch (e) { toast(e.message); } loadJobs(); }
+
+// ---- library ---------------------------------------------------------------
+async function loadShows() {
+  try { S.shows = await api("GET", "/api/library"); S.showsError = ""; }
+  catch (e) { S.showsError = e.message; }
+  if (S.tab === "library") render();
+}
+
+function renderLibrary(view) {
+  setTitle("Library");
+  if (S.showsError) return view.append(el("div", { class: "empty" }, el("b", {}, "Can't reach the server"), el("span", { class: "error" }, S.showsError)));
+  if (!S.shows) return view.append(el("div", { class: "spinner" }));
+  if (!S.shows.length) return view.append(el("div", { class: "empty" }, el("b", {}, "No downloads yet"), "Finished episodes on your Mac show up here."));
+  view.append(el("div", { class: "list" }, S.shows.map((show) =>
+    el("button", { class: "row", onclick: () => push({ name: "show", show: show.name }) },
+      el("div", { class: "grow" }, el("div", { class: "t" }, show.name),
+        el("div", { class: "s" }, plural(show.episodes.length, "episode") + " · " + bytes(show.episodes.reduce((n, e) => n + e.size, 0)))),
+      el("span", { class: "chev" }, "›")))));
+}
+
+function renderShow(view, _action, screen) {
+  const show = (S.shows || []).find((s) => s.name === screen.show);
+  setTitle(screen.show);
+  if (!show) return view.append(el("div", { class: "empty" }, "This show has no downloaded episodes."));
+  view.append(el("div", { class: "list" }, show.episodes.map((ep) => el("div", { class: "row" },
+    el("div", { class: "grow" }, el("div", {}, "Episode " + ep.episode), el("div", { class: "s" }, bytes(ep.size))),
+    el("div", { class: "actions" },
+      el("button", { class: "btn", onclick: () => play(fileUrl(ep.path)) }, "▶ Play"),
+      el("a", { class: "btn", href: fileUrl(ep.path, true), download: `${show.name} - ${ep.episode}.mp4` }, "Save"),
+      el("button", { class: "btn danger", onclick: () => deleteEpisode(ep) }, "✕"))))),
+    el("p", { class: "note" }, "Save downloads the episode to the Files app for offline viewing. ✕ deletes it from the Mac."));
+}
+
+async function deleteEpisode(ep) {
+  if (!confirm(`Delete episode ${ep.episode} from the Mac?`)) return;
+  try { await api("DELETE", "/api/library?path=" + encodeURIComponent(ep.path)); } catch (e) { toast(e.message); }
+  await loadShows();
+}
+
+function play(src) {
+  const p = $("player"), v = p.querySelector("video");
+  v.src = src; p.hidden = false; v.play().catch(() => {});
+}
+$("closePlayer").addEventListener("click", () => {
+  const p = $("player"), v = p.querySelector("video");
+  v.pause(); v.removeAttribute("src"); v.load(); p.hidden = true;
+});
+
+// ---- settings --------------------------------------------------------------
+async function loadStatus() {
+  try { S.status = await api("GET", "/api/status"); S.statusError = ""; }
+  catch (e) { S.status = null; S.statusError = e.message; }
+  if (S.tab === "settings") render();
+}
+
+function renderSettings(view) {
+  setTitle("Settings");
+  const st = S.status;
+  const line = (ok, text) => el("div", { class: "field" }, el("span", {}, text), el("span", { style: `color:var(${ok ? "--ok" : "--warn"})` }, ok ? "✓" : "!"));
+  view.append(el("div", { class: "section" }, "Mac server"));
+  if (S.statusError) view.append(el("div", { class: "list" }, el("div", { class: "field error" }, S.statusError)));
+  else if (!st) view.append(el("div", { class: "spinner" }));
+  else view.append(el("div", { class: "list" },
+    line(true, "Connected to " + location.host),
+    line(!st.missing.length, st.missing.length ? "Missing: " + st.missing.join(", ") : "All tools installed"),
+    line(st.configured, st.configured ? "Cloudflare cookie set" : "Cloudflare cookie not set"),
+    el("div", { class: "field" }, el("span", {}, "Downloads"), el("span", { class: "s", style: "color:var(--dim);font-size:13px;text-align:right;word-break:break-all" }, st.downloadDir))));
+
+  view.append(
+    el("div", { class: "section" }, "Cloudflare"),
+    el("button", { class: "btn full", disabled: S.refreshing, onclick: refreshCookie }, S.refreshing ? "Reading Chrome…" : "Refresh from Chrome"),
+    el("p", { class: "note" }, "The server reads animepahe's Cloudflare cookie from Chrome on your Mac by itself. If searches keep failing, open animepahe.pw in Chrome on the Mac, pass the check, then tap Refresh."),
+    el("div", { class: "section" }, "This device"),
+    el("p", { class: "note" }, "Install as an app: in Safari tap Share → Add to Home Screen."),
+    el("button", { class: "btn full danger", onclick: () => { if (confirm("Sign out of this device?")) { localStorage.removeItem("token"); S.token = ""; render(); } } }, "Sign Out"));
+}
+
+async function refreshCookie() {
+  S.refreshing = true; render();
+  try { S.status = await api("POST", "/api/config/refresh"); toast("Got a fresh cookie from Chrome"); }
+  catch (e) { toast(e.message); }
+  S.refreshing = false; render();
+}
+
+// ---- start -----------------------------------------------------------------
+render();
+if (S.token) loadStatus();
+</script>
+</body>
+</html>
